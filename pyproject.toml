@@ -1,0 +1,27 @@
+[project]
+name = "hec-derivatives"
+version = "0.1.0"
+description = "Python scripts and modules for HEC derivatives courses"
+requires-python = ">=3.9"
+dependencies = [
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "matplotlib>=3.7.0",
+    "pandas-datareader>=0.10.0",
+    "setuptools>=65.0.0",
+    "beautifulsoup4>=4.12.0",
+    "requests>=2.31.0",
+    "lxml>=5.0.0",
+    "jupyter>=1.0.0",
+    "yfinance>=0.2.0",
+    "bokeh>=3.4.3",
+    "scipy>=1.13.1",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["bintree*"]
+
+[build-system]
+requires = ["setuptools>=65.0.0"]
+build-backend = "setuptools.build_meta"
