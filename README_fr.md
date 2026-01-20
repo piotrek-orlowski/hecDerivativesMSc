@@ -21,6 +21,11 @@ Scripts et notebooks Python pour les cours d'analyse des produits derives et fin
 ├── theme_02/                   # Theme 2 : Evaluation d'options avec arbres binomiaux
 │   ├── market-option-prices-binomial-model.ipynb
 │   └── binomial_tree_practice_app.py
+├── theme_03/                   # Theme 3 : Modele de prix lognormal
+│   ├── normal-distributions.ipynb
+│   ├── normal-distributions-fr.ipynb
+│   ├── convexity-adjustment.ipynb
+│   └── convexity-adjustment-fr.ipynb
 ├── pyproject.toml              # Dependances du projet
 ├── uv.lock                     # Versions verrouillees des dependances
 ├── README.md                   # Version anglaise
@@ -122,6 +127,12 @@ Pour lancer l'application de pratique :
 ```bash
 uv run bokeh serve --show theme_02/binomial_tree_practice_app.py
 ```
+
+### Theme 3 : Modele de Prix Lognormal (`theme_03/`)
+
+- **normal-distributions-fr.ipynb** - Introduction aux distributions normales : simulation d'echantillons aleatoires, calcul de statistiques (moyenne, variance), utilisation de scipy.stats pour les calculs de PDF/CDF, comparaison des probabilites analytiques et simulees
+- **convexity-adjustment-fr.ipynb** - Comprendre l'ajustement de convexite dans le modele de prix lognormal : inegalite de Jensen, pourquoi le terme $-\frac{1}{2}\sigma^2$ est necessaire, simulation de prix d'actions avec et sans l'ajustement, visualisation de la distribution lognormale (mode, mediane, moyenne)
+- Versions anglaises egalement disponibles
 
 ### Module d'Arbre Binomial (`bintree/`)
 
