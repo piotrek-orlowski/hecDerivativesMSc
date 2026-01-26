@@ -26,6 +26,8 @@ Scripts et notebooks Python pour les cours d'analyse des produits derives et fin
 │   ├── normal-distributions-fr.ipynb
 │   ├── convexity-adjustment.ipynb
 │   └── convexity-adjustment-fr.ipynb
+├── theme_05/                   # Theme 5 : Black-Scholes et grecques
+│   └── option_greeks_app.py
 ├── pyproject.toml              # Dependances du projet
 ├── uv.lock                     # Versions verrouillees des dependances
 ├── README.md                   # Version anglaise
@@ -133,6 +135,15 @@ uv run bokeh serve --show theme_02/binomial_tree_practice_app.py
 - **normal-distributions-fr.ipynb** - Introduction aux distributions normales : simulation d'echantillons aleatoires, calcul de statistiques (moyenne, variance), utilisation de scipy.stats pour les calculs de PDF/CDF, comparaison des probabilites analytiques et simulees
 - **convexity-adjustment-fr.ipynb** - Comprendre l'ajustement de convexite dans le modele de prix lognormal : inegalite de Jensen, pourquoi le terme $-\frac{1}{2}\sigma^2$ est necessaire, simulation de prix d'actions avec et sans l'ajustement, visualisation de la distribution lognormale (mode, mediane, moyenne)
 - Versions anglaises egalement disponibles
+
+### Theme 5 : Black-Scholes et Grecques (`theme_05/`)
+
+- **option_greeks_app.py** - Application Bokeh interactive pour visualiser les grecques (Delta, Gamma, Vega) en fonction du strike ou de la maturite pour les options europeennes avec les formules de Black-Scholes
+
+Pour lancer l'application de visualisation des grecques :
+```bash
+uv run bokeh serve --show theme_05/option_greeks_app.py
+```
 
 ### Module d'Arbre Binomial (`bintree/`)
 
