@@ -138,7 +138,18 @@ uv run bokeh serve --show theme_02/binomial_tree_practice_app.py
 
 ### Theme 5: Black-Scholes and Option Greeks (`theme_05/`)
 
-- **option_greeks_app.py** - Interactive Bokeh app for visualizing option Greeks (Delta, Gamma, Vega) as functions of strike or maturity for European options using Black-Scholes formulas
+- **option_greeks_app.py** - Interactive Bokeh app for visualizing option Greeks (Delta, Gamma, Vega) for European options using Black-Scholes formulas
+
+**Features:**
+- **Bilingual interface** - Switch between English and French
+- **Two plotting modes:**
+  - Plot Greeks as functions of **strike (K)** with up to 3 different maturities
+  - Plot Greeks as functions of **maturity (T)** with up to 3 different strikes (moneyness levels)
+- **Interactive controls** for all option parameters:
+  - Spot price (S), Volatility (σ), Risk-free rate (r), Dividend yield (δ)
+  - Maturities T₁, T₂, T₃ or strike moneyness K₁/S, K₂/S, K₃/S
+- **Call and Put options** - Toggle between option types
+- **Three synchronized plots** showing Delta, Gamma, and Vega side by side
 
 To run the Greeks visualization app:
 ```bash
