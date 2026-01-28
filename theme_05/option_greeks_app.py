@@ -30,10 +30,10 @@ TRANSLATIONS = {
         'call': "Call",
         'put': "Put",
         'mode_label': "<b>Plot as function of:</b>",
-        'mode_strike': "Strike (K)",
+        'mode_spot': "Spot Price (S)",
         'mode_maturity': "Maturity (T)",
         'params_label': "<b>Option Parameters:</b>",
-        'spot_price': "Spot Price (S)",
+        'strike_price': "Strike Price (K)",
         'volatility': "Volatility (σ)",
         'risk_free_rate': "Risk-free Rate (r)",
         'dividend_yield': "Dividend Yield (δ)",
@@ -48,7 +48,7 @@ TRANSLATIONS = {
         'delta_title': "Delta (Δ)",
         'gamma_title': "Gamma (Γ)",
         'vega_title': "Vega (ν) per 1% vol",
-        'strike_axis': "Strike (K)",
+        'spot_axis': "Spot Price (S)",
         'maturity_axis': "Maturity (T)",
         'doc_title': "Option Greeks Visualization",
     },
@@ -59,10 +59,10 @@ TRANSLATIONS = {
         'call': "Call",
         'put': "Put",
         'mode_label': "<b>Tracer en fonction de:</b>",
-        'mode_strike': "Strike (K)",
+        'mode_spot': "Prix spot (S)",
         'mode_maturity': "Maturité (T)",
         'params_label': "<b>Paramètres de l'option:</b>",
-        'spot_price': "Prix spot (S)",
+        'strike_price': "Prix d'exercice (K)",
         'volatility': "Volatilité (σ)",
         'risk_free_rate': "Taux sans risque (r)",
         'dividend_yield': "Rendement en dividendes (δ)",
@@ -77,7 +77,7 @@ TRANSLATIONS = {
         'delta_title': "Delta (Δ)",
         'gamma_title': "Gamma (Γ)",
         'vega_title': "Vega (ν) par 1% de vol",
-        'strike_axis': "Strike (K)",
+        'spot_axis': "Prix spot (S)",
         'maturity_axis': "Maturité (T)",
         'doc_title': "Visualisation des Grecques",
     }
@@ -136,22 +136,22 @@ class OptionGreeksApp:
 
     def __init__(self):
         # Default parameters
-        self.S = 100.0
+        self.K = 100.0  # Strike price (fixed for the option)
         self.sigma = 0.30
         self.r = 0.05
         self.delta = 0.02
 
-        # For strike plots: three maturities
+        # For spot price plots: three maturities
         self.T1 = 0.25
         self.T2 = 0.50
         self.T3 = 1.00
 
-        # For maturity plots: three strikes (as moneyness K/S)
+        # For maturity plots: three strikes (as K/S moneyness)
         self.moneyness1 = 0.80
         self.moneyness2 = 1.00
         self.moneyness3 = 1.20
 
-        # Plot mode: 0 = vs Strike, 1 = vs Maturity
+        # Plot mode: 0 = vs Spot Price, 1 = vs Maturity
         self.plot_mode = 0
 
         # Option type: 0 = Call, 1 = Put
@@ -199,18 +199,18 @@ class OptionGreeksApp:
         # Plot mode selector
         self.mode_label = Div(text=self._t('mode_label'), width=300, height=20)
         self.mode_selector = RadioButtonGroup(
-            labels=[self._t('mode_strike'), self._t('mode_maturity')], active=0, width=300
+            labels=[self._t('mode_spot'), self._t('mode_maturity')], active=0, width=300
         )
         self.mode_selector.on_change('active', self._on_mode_change)
 
         # Common parameters section
         self.params_label = Div(text=self._t('params_label'), width=300, height=25)
 
-        self.S_slider = Slider(
-            start=50, end=200, value=self.S, step=1,
-            title=self._t('spot_price'), width=280
+        self.K_slider = Slider(
+            start=50, end=200, value=self.K, step=1,
+            title=self._t('strike_price'), width=280
         )
-        self.S_slider.on_change('value', self._on_param_change)
+        self.K_slider.on_change('value', self._on_param_change)
 
         self.sigma_slider = Slider(
             start=0.05, end=0.80, value=self.sigma, step=0.01,
@@ -352,7 +352,7 @@ class OptionGreeksApp:
             self.mode_selector,
             Div(text="<hr>", width=300, height=10),
             self.params_label,
-            self.S_slider,
+            self.K_slider,
             self.sigma_slider,
             self.r_slider,
             self.delta_slider,
@@ -389,11 +389,11 @@ class OptionGreeksApp:
         self.option_type_label.text = self._t('option_type_label')
         self.option_type_selector.labels = [self._t('call'), self._t('put')]
         self.mode_label.text = self._t('mode_label')
-        self.mode_selector.labels = [self._t('mode_strike'), self._t('mode_maturity')]
+        self.mode_selector.labels = [self._t('mode_spot'), self._t('mode_maturity')]
         self.params_label.text = self._t('params_label')
 
         # Update slider titles
-        self.S_slider.title = self._t('spot_price')
+        self.K_slider.title = self._t('strike_price')
         self.sigma_slider.title = self._t('volatility')
         self.r_slider.title = self._t('risk_free_rate')
         self.delta_slider.title = self._t('dividend_yield')
@@ -424,7 +424,7 @@ class OptionGreeksApp:
 
     def _on_param_change(self, attr, old, new):
         """Handle parameter slider changes"""
-        self.S = self.S_slider.value
+        self.K = self.K_slider.value
         self.sigma = self.sigma_slider.value
         self.r = self.r_slider.value
         self.delta = self.delta_slider.value
@@ -439,7 +439,7 @@ class OptionGreeksApp:
     def _update_plots(self):
         """Update all three plots based on current parameters"""
 
-        S = self.S
+        K = self.K
         sigma = self.sigma
         r = self.r
         delta = self.delta
@@ -447,31 +447,31 @@ class OptionGreeksApp:
         # Always read current mode from the widget to avoid sync issues
         current_mode = self.mode_selector.active
 
-        if current_mode == 0:  # Plot vs Strike
-            # X-axis: strikes from 0.5*S to 1.5*S
-            K_range = np.linspace(0.5 * S, 1.5 * S, 200)
+        if current_mode == 0:  # Plot vs Spot Price
+            # X-axis: spot prices from 0.5*K to 1.5*K
+            S_range = np.linspace(0.5 * K, 1.5 * K, 200)
             maturities = [self.T1, self.T2, self.T3]
 
             for i, T in enumerate(maturities):
                 if self.option_type == 0:  # Call
-                    delta_vals = bs_delta_call(S, K_range, r, delta, sigma, T)
+                    delta_vals = bs_delta_call(S_range, K, r, delta, sigma, T)
                 else:  # Put
-                    delta_vals = bs_delta_put(S, K_range, r, delta, sigma, T)
+                    delta_vals = bs_delta_put(S_range, K, r, delta, sigma, T)
 
-                gamma_vals = bs_gamma(S, K_range, r, delta, sigma, T)
-                vega_vals = bs_vega(S, K_range, r, delta, sigma, T)
+                gamma_vals = bs_gamma(S_range, K, r, delta, sigma, T)
+                vega_vals = bs_vega(S_range, K, r, delta, sigma, T)
 
-                self.delta_sources[i].data = {'x': K_range, 'y': delta_vals}
-                self.gamma_sources[i].data = {'x': K_range, 'y': gamma_vals}
-                self.vega_sources[i].data = {'x': K_range, 'y': vega_vals}
+                self.delta_sources[i].data = {'x': S_range, 'y': delta_vals}
+                self.gamma_sources[i].data = {'x': S_range, 'y': gamma_vals}
+                self.vega_sources[i].data = {'x': S_range, 'y': vega_vals}
 
             # Update axis labels and ranges
-            self.delta_plot.xaxis.axis_label = self._t('strike_axis')
-            self.gamma_plot.xaxis.axis_label = self._t('strike_axis')
-            self.vega_plot.xaxis.axis_label = self._t('strike_axis')
+            self.delta_plot.xaxis.axis_label = self._t('spot_axis')
+            self.gamma_plot.xaxis.axis_label = self._t('spot_axis')
+            self.vega_plot.xaxis.axis_label = self._t('spot_axis')
 
             # Explicitly set x_range using Range1d
-            x_min, x_max = float(K_range[0]), float(K_range[-1])
+            x_min, x_max = float(S_range[0]), float(S_range[-1])
             self.delta_plot.x_range = Range1d(start=x_min, end=x_max)
             self.gamma_plot.x_range = Range1d(start=x_min, end=x_max)
             self.vega_plot.x_range = Range1d(start=x_min, end=x_max)
@@ -490,9 +490,11 @@ class OptionGreeksApp:
         else:  # Plot vs Maturity
             # X-axis: maturities from 0.05 to 1 year
             T_range = np.linspace(0.05, 1.0, 200)
-            strikes = [self.moneyness1 * S, self.moneyness2 * S, self.moneyness3 * S]
+            # For maturity plots, use moneyness relative to strike K
+            # moneyness = K/S, so S = K/moneyness
+            spot_prices = [K / self.moneyness1, K / self.moneyness2, K / self.moneyness3]
 
-            for i, K in enumerate(strikes):
+            for i, S in enumerate(spot_prices):
                 if self.option_type == 0:  # Call
                     delta_vals = bs_delta_call(S, K, r, delta, sigma, T_range)
                 else:  # Put
