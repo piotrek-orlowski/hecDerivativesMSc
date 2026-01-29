@@ -11,6 +11,8 @@ from .forward_binomial_tree import (
     put_payoff,
     digital_call_payoff,
     digital_put_payoff,
+    FastAmericanPricer,
+    implied_volatility_american,
 )
 
 __all__ = [
@@ -20,4 +22,6 @@ __all__ = [
     'put_payoff',
     'digital_call_payoff',
     'digital_put_payoff',
+    'FastAmericanPricer',
+    'implied_volatility_american',
 ]

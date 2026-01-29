@@ -713,3 +713,422 @@ def digital_call_payoff(strike: float, payout: float = 1.0) -> Callable[[float],
 def digital_put_payoff(strike: float, payout: float = 1.0) -> Callable[[float], float]:
     """Create a digital/binary put option payoff function"""
     return lambda S: payout if S <= strike else 0.0
+
+
+# =============================================================================
+# Fast Vectorized American Option Pricer (Optimized for Implied Volatility)
+# =============================================================================
+
+def _lcm(a: int, b: int) -> int:
+    """Compute least common multiple of two integers."""
+    from math import gcd
+    return a * b // gcd(a, b)
+
+
+def _compute_aligned_periods(
+    T_maturity: float,
+    dividend_times: List[float],
+    min_periods: int
+) -> int:
+    """
+    Compute the number of periods such that all dividend times fall on period boundaries.
+
+    Returns the smallest N >= min_periods where t_i * N / T is an integer for all dividend times.
+    """
+    from fractions import Fraction
+    from functools import reduce
+
+    if not dividend_times:
+        return min_periods
+
+    denominators = []
+    for t in dividend_times:
+        ratio = Fraction(t / T_maturity).limit_denominator(10000)
+        denominators.append(ratio.denominator)
+
+    N_base = reduce(_lcm, denominators, 1)
+
+    if N_base >= min_periods:
+        return N_base
+    else:
+        multiplier = (min_periods + N_base - 1) // N_base
+        return multiplier * N_base
+
+
+class FastAmericanPricer:
+    """
+    Fast vectorized American option pricer optimized for implied volatility.
+
+    Supports both continuous dividend yields and discrete dividend payments.
+    Uses numpy arrays instead of TreeNode objects for maximum speed.
+
+    Parameters:
+    -----------
+    S0 : float
+        Initial stock price
+    K : float
+        Strike price
+    T_maturity : float
+        Time to maturity in years
+    rf : float
+        Risk-free rate (continuously compounded)
+    div_yld : float
+        Continuous dividend yield (default 0.0). Ignored if dividends provided.
+    dividends : List[Tuple[float, float]], optional
+        Discrete dividends as [(time, amount), ...]. If provided, div_yld is ignored
+        and the escrowed dividend model is used. Times must be in (0, T_maturity).
+    N_periods : int
+        Number of periods in the tree. With discrete dividends, may be adjusted
+        upward to align period boundaries with dividend dates.
+    is_call : bool
+        True for call option, False for put option
+
+    Examples:
+    ---------
+    Continuous dividend yield:
+    >>> pricer = FastAmericanPricer(S0=100, K=100, T_maturity=1.0, rf=0.05,
+    ...                             div_yld=0.02, N_periods=200, is_call=False)
+    >>> price = pricer.price(sigma=0.30)
+
+    Discrete dividends:
+    >>> dividends = [(0.25, 2.0), (0.5, 2.0), (0.75, 2.0)]  # Quarterly $2
+    >>> pricer = FastAmericanPricer(S0=100, K=100, T_maturity=1.0, rf=0.05,
+    ...                             dividends=dividends, N_periods=100, is_call=False)
+    >>> price = pricer.price(sigma=0.30)
+    """
+
+    def __init__(
+        self,
+        S0: float,
+        K: float,
+        T_maturity: float,
+        rf: float,
+        div_yld: float = 0.0,
+        dividends: Optional[List[Tuple[float, float]]] = None,
+        N_periods: int = 200,
+        is_call: bool = True
+    ):
+        self.S0 = S0
+        self.K = K
+        self.T_maturity = T_maturity
+        self.rf = rf
+        self.is_call = is_call
+
+        # Determine dividend mode
+        if dividends is not None and len(dividends) > 0:
+            self._discrete_dividends = True
+            self.div_yld = 0.0  # Not used in discrete mode
+
+            # Validate and sort dividends by time
+            self.dividends = sorted(
+                [(t, d) for t, d in dividends if 0 < t < T_maturity],
+                key=lambda x: x[0]
+            )
+            dividend_times = [t for t, _ in self.dividends]
+
+            # Compute aligned number of periods
+            self.N_periods = _compute_aligned_periods(T_maturity, dividend_times, N_periods)
+            self.h_period = T_maturity / self.N_periods
+
+            # Map dividend times to period indices
+            self.dividend_periods = [int(round(t / self.h_period)) for t, _ in self.dividends]
+
+            # Compute PV of all dividends at t=0
+            self.pv_all_dividends = sum(d * np.exp(-rf * t) for t, d in self.dividends)
+
+            # S* = S0 - PV(all dividends)
+            self.S0_star = S0 - self.pv_all_dividends
+
+            # Precompute PV of remaining dividends at each period
+            self._precompute_pv_remaining()
+        else:
+            self._discrete_dividends = False
+            self.div_yld = div_yld
+            self.dividends = []
+            self.dividend_periods = []
+            self.pv_all_dividends = 0.0
+            self.S0_star = S0
+            self.N_periods = N_periods
+            self.h_period = T_maturity / N_periods
+
+        self.discount = np.exp(-rf * self.h_period)
+        self._precompute_indices()
+
+    def _precompute_pv_remaining(self):
+        """Precompute PV of remaining dividends at each period (discrete mode only)."""
+        self.pv_remaining = np.zeros(self.N_periods + 1)
+
+        for n in range(self.N_periods + 1):
+            t_n = n * self.h_period
+            pv = 0.0
+            for (t_div, d), period in zip(self.dividends, self.dividend_periods):
+                if period > n:
+                    pv += d * np.exp(-self.rf * (t_div - t_n))
+            self.pv_remaining[n] = pv
+
+    def _precompute_indices(self):
+        """Precompute index arrays for vectorized stock price calculation."""
+        self.up_counts = []
+        self.down_counts = []
+
+        for n in range(self.N_periods + 1):
+            self.up_counts.append(np.arange(n, -1, -1, dtype=np.float64))
+            self.down_counts.append(np.arange(0, n + 1, dtype=np.float64))
+
+    def _compute_stock_prices(self, u: float, d: float) -> list:
+        """Compute stock prices at all nodes."""
+        S0_base = self.S0_star if self._discrete_dividends else self.S0
+        S = []
+        for n in range(self.N_periods + 1):
+            S.append(S0_base * (u ** self.up_counts[n]) * (d ** self.down_counts[n]))
+        return S
+
+    def _get_exercise_prices(self, S: list, n: int) -> np.ndarray:
+        """Get stock prices for exercise decision at period n."""
+        if self._discrete_dividends:
+            return S[n] + self.pv_remaining[n]
+        else:
+            return S[n]
+
+    def price(self, sigma: float) -> float:
+        """
+        Price the American option for a given volatility.
+
+        Parameters:
+        -----------
+        sigma : float
+            Volatility (annualized)
+
+        Returns:
+        --------
+        float : Option price
+        """
+        # Compute tree parameters
+        if self._discrete_dividends:
+            fwd_ratio = np.exp(self.rf * self.h_period)
+        else:
+            fwd_ratio = np.exp((self.rf - self.div_yld) * self.h_period)
+
+        u = fwd_ratio * np.exp(sigma * np.sqrt(self.h_period))
+        d = fwd_ratio * np.exp(-sigma * np.sqrt(self.h_period))
+        p = (fwd_ratio - d) / (u - d)
+
+        # Compute stock prices at all nodes
+        S = self._compute_stock_prices(u, d)
+
+        # Terminal payoffs (at maturity, pv_remaining = 0, so S_actual = S*)
+        S_T = S[self.N_periods]
+        if self.is_call:
+            V = np.maximum(S_T - self.K, 0.0)
+        else:
+            V = np.maximum(self.K - S_T, 0.0)
+
+        # Backward induction with early exercise
+        for n in range(self.N_periods - 1, -1, -1):
+            continuation = self.discount * (p * V[:-1] + (1 - p) * V[1:])
+
+            # Get actual stock price for exercise decision
+            S_exercise = self._get_exercise_prices(S, n)
+
+            if self.is_call:
+                exercise = np.maximum(S_exercise - self.K, 0.0)
+            else:
+                exercise = np.maximum(self.K - S_exercise, 0.0)
+
+            if n > 0:
+                V = np.maximum(continuation, exercise)
+            else:
+                V = continuation
+
+        return float(V[0])
+
+    def price_and_delta(self, sigma: float) -> Tuple[float, float]:
+        """
+        Price the American option and compute delta at t=0.
+
+        Parameters:
+        -----------
+        sigma : float
+            Volatility (annualized)
+
+        Returns:
+        --------
+        Tuple[float, float] : (price, delta)
+        """
+        if self._discrete_dividends:
+            fwd_ratio = np.exp(self.rf * self.h_period)
+        else:
+            fwd_ratio = np.exp((self.rf - self.div_yld) * self.h_period)
+
+        u = fwd_ratio * np.exp(sigma * np.sqrt(self.h_period))
+        d = fwd_ratio * np.exp(-sigma * np.sqrt(self.h_period))
+        p = (fwd_ratio - d) / (u - d)
+
+        S = self._compute_stock_prices(u, d)
+
+        S_T = S[self.N_periods]
+        if self.is_call:
+            V = np.maximum(S_T - self.K, 0.0)
+        else:
+            V = np.maximum(self.K - S_T, 0.0)
+
+        for n in range(self.N_periods - 1, -1, -1):
+            continuation = self.discount * (p * V[:-1] + (1 - p) * V[1:])
+
+            S_exercise = self._get_exercise_prices(S, n)
+
+            if self.is_call:
+                exercise = np.maximum(S_exercise - self.K, 0.0)
+            else:
+                exercise = np.maximum(self.K - S_exercise, 0.0)
+
+            if n > 0:
+                V = np.maximum(continuation, exercise)
+            else:
+                V_u = V[0]
+                V_d = V[1]
+                S_u = S[1][0]
+                S_d = S[1][1]
+                V = continuation
+
+        # Delta computation
+        if self._discrete_dividends:
+            # Delta w.r.t. S* (pure stock); since S = S* + PV(divs), dS = dS*
+            delta = (V_u - V_d) / (S_u - S_d)
+        else:
+            delta = np.exp(-self.div_yld * self.h_period) * (V_u - V_d) / (S_u - S_d)
+
+        return float(V[0]), float(delta)
+
+    def european_price(self, sigma: float) -> float:
+        """
+        Price the European option (no early exercise) for comparison.
+
+        Parameters:
+        -----------
+        sigma : float
+            Volatility (annualized)
+
+        Returns:
+        --------
+        float : European option price
+        """
+        if self._discrete_dividends:
+            fwd_ratio = np.exp(self.rf * self.h_period)
+        else:
+            fwd_ratio = np.exp((self.rf - self.div_yld) * self.h_period)
+
+        u = fwd_ratio * np.exp(sigma * np.sqrt(self.h_period))
+        d = fwd_ratio * np.exp(-sigma * np.sqrt(self.h_period))
+        p = (fwd_ratio - d) / (u - d)
+
+        S0_base = self.S0_star if self._discrete_dividends else self.S0
+        S_T = S0_base * (u ** self.up_counts[self.N_periods]) * (d ** self.down_counts[self.N_periods])
+
+        if self.is_call:
+            V = np.maximum(S_T - self.K, 0.0)
+        else:
+            V = np.maximum(self.K - S_T, 0.0)
+
+        for n in range(self.N_periods - 1, -1, -1):
+            V = self.discount * (p * V[:-1] + (1 - p) * V[1:])
+
+        return float(V[0])
+
+    def info(self) -> dict:
+        """Return information about the pricer configuration."""
+        return {
+            'S0': self.S0,
+            'S0_star': self.S0_star,
+            'K': self.K,
+            'T_maturity': self.T_maturity,
+            'rf': self.rf,
+            'div_yld': self.div_yld,
+            'is_call': self.is_call,
+            'N_periods': self.N_periods,
+            'h_period': self.h_period,
+            'discrete_dividends': self._discrete_dividends,
+            'dividends': self.dividends,
+            'dividend_periods': self.dividend_periods,
+            'pv_all_dividends': self.pv_all_dividends,
+        }
+
+
+def implied_volatility_american(
+    market_price: float,
+    S0: float,
+    K: float,
+    T_maturity: float,
+    rf: float,
+    div_yld: float,
+    is_call: bool = True,
+    N_periods: int = 200,
+    tol: float = 1e-6,
+    max_iter: int = 100,
+    sigma_init: float = 0.3
+) -> Tuple[float, int]:
+    """
+    Compute implied volatility for an American option using Newton-Raphson.
+
+    Parameters:
+    -----------
+    market_price : float
+        Observed market price of the option
+    S0 : float
+        Current stock price
+    K : float
+        Strike price
+    T_maturity : float
+        Time to maturity in years
+    rf : float
+        Risk-free rate (continuously compounded)
+    div_yld : float
+        Dividend yield (continuously compounded)
+    is_call : bool
+        True for call, False for put
+    N_periods : int
+        Number of tree periods (higher = more accurate but slower)
+    tol : float
+        Convergence tolerance
+    max_iter : int
+        Maximum iterations
+    sigma_init : float
+        Initial volatility guess
+
+    Returns:
+    --------
+    Tuple[float, int] : (implied_volatility, iterations)
+    """
+    pricer = FastAmericanPricer(
+        S0=S0, K=K, T_maturity=T_maturity, rf=rf, div_yld=div_yld,
+        N_periods=N_periods, is_call=is_call
+    )
+
+    sigma = sigma_init
+    d_sigma = 0.0001  # For numerical vega
+
+    for i in range(max_iter):
+        price = pricer.price(sigma)
+        diff = price - market_price
+
+        if abs(diff) < tol:
+            return sigma, i + 1
+
+        # Numerical vega (price sensitivity to sigma)
+        price_up = pricer.price(sigma + d_sigma)
+        vega = (price_up - price) / d_sigma
+
+        if abs(vega) < 1e-10:
+            # Vega too small, use bisection step
+            if diff > 0:
+                sigma *= 0.9
+            else:
+                sigma *= 1.1
+        else:
+            # Newton-Raphson step
+            sigma = sigma - diff / vega
+
+        # Keep sigma in reasonable bounds
+        sigma = max(0.001, min(sigma, 5.0))
+
+    return sigma, max_iter
