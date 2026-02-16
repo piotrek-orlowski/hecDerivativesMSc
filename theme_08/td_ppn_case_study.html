@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<script src="td_ppn_case_study_files/libs/clipboard/clipboard.min.js"></script>
+<script src="td_ppn_case_study_files/libs/quarto-html/tabby.min.js"></script>
+<script src="td_ppn_case_study_files/libs/quarto-html/popper.min.js"></script>
+<script src="td_ppn_case_study_files/libs/quarto-html/tippy.umd.min.js"></script>
+<link href="td_ppn_case_study_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="td_ppn_case_study_files/libs/quarto-html/light-border.css" rel="stylesheet">
+<link href="td_ppn_case_study_files/libs/quarto-html/quarto-syntax-highlighting-8b4baf804e461d9b72633f0de59a0cac.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
+  <meta name="generator" content="quarto-1.8.27">
+
+  <meta name="author" content="FINA60232 — Principles of Derivatives Pricing">
+  <meta name="dcterms.date" content="2026-01-01">
+  <title>Pricing a Principal-Protected Note</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="td_ppn_case_study_files/libs/revealjs/dist/reset.css">
+  <link rel="stylesheet" href="td_ppn_case_study_files/libs/revealjs/dist/reveal.css">
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+      vertical-align: middle;
+    }
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+      }
+    pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+    div.sourceCode
+      { color: #24292e;  }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span { color: #24292e; } /* Normal */
+    code span.al { color: #ff5555; font-weight: bold; } /* Alert */
+    code span.an { color: #6a737d; } /* Annotation */
+    code span.at { color: #d73a49; } /* Attribute */
+    code span.bn { color: #005cc5; } /* BaseN */
+    code span.bu { color: #d73a49; } /* BuiltIn */
+    code span.cf { color: #d73a49; } /* ControlFlow */
+    code span.ch { color: #032f62; } /* Char */
+    code span.cn { color: #005cc5; } /* Constant */
+    code span.co { color: #6a737d; } /* Comment */
+    code span.cv { color: #6a737d; } /* CommentVar */
+    code span.do { color: #6a737d; } /* Documentation */
+    code span.dt { color: #d73a49; } /* DataType */
+    code span.dv { color: #005cc5; } /* DecVal */
+    code span.er { color: #ff5555; text-decoration: underline; } /* Error */
+    code span.ex { color: #d73a49; font-weight: bold; } /* Extension */
+    code span.fl { color: #005cc5; } /* Float */
+    code span.fu { color: #6f42c1; } /* Function */
+    code span.im { color: #032f62; } /* Import */
+    code span.in { color: #6a737d; } /* Information */
+    code span.kw { color: #d73a49; } /* Keyword */
+    code span.op { color: #24292e; } /* Operator */
+    code span.ot { color: #6f42c1; } /* Other */
+    code span.pp { color: #d73a49; } /* Preprocessor */
+    code span.re { color: #6a737d; } /* RegionMarker */
+    code span.sc { color: #005cc5; } /* SpecialChar */
+    code span.ss { color: #032f62; } /* SpecialString */
+    code span.st { color: #032f62; } /* String */
+    code span.va { color: #e36209; } /* Variable */
+    code span.vs { color: #032f62; } /* VerbatimString */
+    code span.wa { color: #ff5555; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="td_ppn_case_study_files/libs/revealjs/dist/theme/quarto-0fde88a82f0356838740f155f1088782.css">
+  <link href="td_ppn_case_study_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
+  <link href="td_ppn_case_study_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
+  <link href="td_ppn_case_study_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
+  <link href="td_ppn_case_study_files/libs/revealjs/plugin/quarto-support/footer.css" rel="stylesheet">
+  <style type="text/css">
+    .reveal div.sourceCode {
+      margin: 0;
+      overflow: auto;
+    }
+    .reveal div.hanging-indent {
+      margin-left: 1em;
+      text-indent: -1em;
+    }
+    .reveal .slide:not(.center) {
+      height: 100%;
+    }
+    .reveal .slide.scrollable {
+      overflow-y: auto;
+    }
+    .reveal .footnotes {
+      height: 100%;
+      overflow-y: auto;
+    }
+    .reveal .slide .absolute {
+      position: absolute;
+      display: block;
+    }
+    .reveal .footnotes ol {
+      counter-reset: ol;
+      list-style-type: none; 
+      margin-left: 0;
+    }
+    .reveal .footnotes ol li:before {
+      counter-increment: ol;
+      content: counter(ol) ". "; 
+    }
+    .reveal .footnotes ol li > p:first-child {
+      display: inline-block;
+    }
+    .reveal .slide ul,
+    .reveal .slide ol {
+      margin-bottom: 0.5em;
+    }
+    .reveal .slide ul li,
+    .reveal .slide ol li {
+      margin-top: 0.4em;
+      margin-bottom: 0.2em;
+    }
+    .reveal .slide ul[role="tablist"] li {
+      margin-bottom: 0;
+    }
+    .reveal .slide ul li > *:first-child,
+    .reveal .slide ol li > *:first-child {
+      margin-block-start: 0;
+    }
+    .reveal .slide ul li > *:last-child,
+    .reveal .slide ol li > *:last-child {
+      margin-block-end: 0;
+    }
+    .reveal .slide .columns:nth-child(3) {
+      margin-block-start: 0.8em;
+    }
+    .reveal blockquote {
+      box-shadow: none;
+    }
+    .reveal .tippy-content>* {
+      margin-top: 0.2em;
+      margin-bottom: 0.7em;
+    }
+    .reveal .tippy-content>*:last-child {
+      margin-bottom: 0.2em;
+    }
+    .reveal .slide > img.stretch.quarto-figure-center,
+    .reveal .slide > img.r-stretch.quarto-figure-center {
+      display: block;
+      margin-left: auto;
+      margin-right: auto; 
+    }
+    .reveal .slide > img.stretch.quarto-figure-left,
+    .reveal .slide > img.r-stretch.quarto-figure-left  {
+      display: block;
+      margin-left: 0;
+      margin-right: auto; 
+    }
+    .reveal .slide > img.stretch.quarto-figure-right,
+    .reveal .slide > img.r-stretch.quarto-figure-right  {
+      display: block;
+      margin-left: auto;
+      margin-right: 0; 
+    }
+  </style>
+</head>
+<body class="quarto-light">
+  <div class="reveal">
+    <div class="slides">
+
+<section id="title-slide" class="quarto-title-block center">
+  <h1 class="title">Pricing a Principal-Protected Note</h1>
+  <p class="subtitle">TD Canadian Large Cap Diversified Equity Index 265 AR-Linked Boosted Growth Notes</p>
+
+<div class="quarto-title-authors">
+<div class="quarto-title-author">
+<div class="quarto-title-author-name">
+FINA60232 — Principles of Derivatives Pricing 
+</div>
+</div>
+</div>
+
+  <p class="date">2026-01-01</p>
+</section>
+<section id="outline" class="slide level2">
+<h2>Outline</h2>
+<ol type="1">
+<li>The structured note and its payoff</li>
+<li>Decomposing the payoff into vanilla instruments</li>
+<li>The AR index: total return with a drag</li>
+<li>Prepaid forward prices and the generalized Black-Scholes</li>
+<li>Volatility estimation
+<ul>
+<li>Market-implied (Montreal Exchange option data)</li>
+<li>Historical constituent returns + variance risk premium</li>
+</ul></li>
+<li>Pricing results and sensitivity</li>
+<li>Continuous dividend yield approximation</li>
+<li>Expected return to the investor</li>
+</ol>
+<aside class="notes">
+<p>Case study based on a real TD Bank structured note (Series 212), priced using tools from the course.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="the-note-at-a-glance" class="slide level2">
+<h2>The Note at a Glance</h2>
+<div class="columns">
+<div class="column" style="width:55%;">
+<table class="caption-top">
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Issuer</td>
+<td>TD Bank</td>
+</tr>
+<tr class="even">
+<td>Principal</td>
+<td>$100 (protected at maturity)</td>
+</tr>
+<tr class="odd">
+<td>Maturity</td>
+<td>4 years (Jan 29, 2030)</td>
+</tr>
+<tr class="even">
+<td>Underlying</td>
+<td>TD Cdn Large Cap Div. Equity Index 265 AR</td>
+</tr>
+<tr class="odd">
+<td>Initial index level</td>
+<td><span class="math inline">\(\text{AR}_0 = 5{,}468.46\)</span></td>
+</tr>
+<tr class="even">
+<td>Boosted return</td>
+<td>20% if <span class="math inline">\(R_{\text{AR}} \geq 0\)</span></td>
+</tr>
+<tr class="odd">
+<td>Participation rate</td>
+<td>5% for <span class="math inline">\(R_{\text{AR}}\)</span> above 20%</td>
+</tr>
+<tr class="even">
+<td>Selling commission</td>
+<td>2%</td>
+</tr>
+</tbody>
+</table>
+</div><div class="column" style="width:45%;">
+<p><strong>What the investor receives at maturity:</strong></p>
+<p><span class="math display">\[\$100 + \text{Variable Return (VR)}\]</span></p>
+<p>where</p>
+<p><span class="math display">\[\text{VR} = \begin{cases} 0 &amp; \text{if } R_{\text{AR}} &lt; 0 \\ \$20 &amp; \text{if } 0 \leq R_{\text{AR}} \leq 20\% \\ \$20 + 5\% \times (R_{\text{AR}} - 20\%) \times \$100 &amp; \text{if } R_{\text{AR}} &gt; 20\% \end{cases}\]</span></p>
+<p><strong>Key question:</strong> What is the fair value of this note?</p>
+</div></div>
+</section>
+<section id="payoff-diagram" class="slide level2">
+<h2>Payoff Diagram</h2>
+<div id="c51c5193" class="cell" data-fig-height="5" data-fig-width="14" data-execution_count="1">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href=""></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-2"><a href=""></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-3"><a href=""></a></span>
+<span id="cb1-4"><a href=""></a>R <span class="op">=</span> np.linspace(<span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0.8</span>, <span class="dv">1000</span>)</span>
+<span id="cb1-5"><a href=""></a>payoff <span class="op">=</span> np.where(R <span class="op">&lt;</span> <span class="dv">0</span>, <span class="dv">100</span>,</span>
+<span id="cb1-6"><a href=""></a>         np.where(R <span class="op">&lt;=</span> <span class="fl">0.2</span>, <span class="dv">120</span>,</span>
+<span id="cb1-7"><a href=""></a>         <span class="dv">120</span> <span class="op">+</span> <span class="fl">0.05</span> <span class="op">*</span> (R <span class="op">-</span> <span class="fl">0.2</span>) <span class="op">*</span> <span class="dv">100</span>))</span>
+<span id="cb1-8"><a href=""></a></span>
+<span id="cb1-9"><a href=""></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">5</span>))</span>
+<span id="cb1-10"><a href=""></a>ax.plot(R <span class="op">*</span> <span class="dv">100</span>, payoff, <span class="st">'b-'</span>, linewidth<span class="op">=</span><span class="fl">2.5</span>, label<span class="op">=</span><span class="st">'PPN payoff'</span>)</span>
+<span id="cb1-11"><a href=""></a>ax.axhline(<span class="dv">100</span>, color<span class="op">=</span><span class="st">'gray'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>, label<span class="op">=</span><span class="st">'Principal'</span>)</span>
+<span id="cb1-12"><a href=""></a>ax.axvline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">'gray'</span>, linestyle<span class="op">=</span><span class="st">':'</span>, alpha<span class="op">=</span><span class="fl">0.4</span>)</span>
+<span id="cb1-13"><a href=""></a>ax.axvline(<span class="dv">20</span>, color<span class="op">=</span><span class="st">'gray'</span>, linestyle<span class="op">=</span><span class="st">':'</span>, alpha<span class="op">=</span><span class="fl">0.4</span>)</span>
+<span id="cb1-14"><a href=""></a>ax.set_xlabel(<span class="st">'AR Index Return (%)'</span>, fontsize<span class="op">=</span><span class="dv">13</span>)</span>
+<span id="cb1-15"><a href=""></a>ax.set_ylabel(<span class="st">'Payoff ($)'</span>, fontsize<span class="op">=</span><span class="dv">13</span>)</span>
+<span id="cb1-16"><a href=""></a>ax.set_title(<span class="st">'Note Payoff at Maturity (per $100 invested)'</span>, fontsize<span class="op">=</span><span class="dv">14</span>)</span>
+<span id="cb1-17"><a href=""></a>ax.legend(fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb1-18"><a href=""></a>ax.set_xlim(<span class="op">-</span><span class="dv">50</span>, <span class="dv">80</span>)</span>
+<span id="cb1-19"><a href=""></a>ax.set_ylim(<span class="dv">80</span>, <span class="dv">130</span>)</span>
+<span id="cb1-20"><a href=""></a>ax.annotate(<span class="st">'Principal</span><span class="ch">\n</span><span class="st">protection'</span>, xy<span class="op">=</span>(<span class="op">-</span><span class="dv">25</span>, <span class="dv">100</span>), fontsize<span class="op">=</span><span class="dv">11</span>,</span>
+<span id="cb1-21"><a href=""></a>            ha<span class="op">=</span><span class="st">'center'</span>, color<span class="op">=</span><span class="st">'darkred'</span>)</span>
+<span id="cb1-22"><a href=""></a>ax.annotate(<span class="st">'Boosted</span><span class="ch">\n</span><span class="st">return: $20'</span>, xy<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">120</span>), fontsize<span class="op">=</span><span class="dv">11</span>,</span>
+<span id="cb1-23"><a href=""></a>            ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'bottom'</span>, color<span class="op">=</span><span class="st">'darkblue'</span>)</span>
+<span id="cb1-24"><a href=""></a>ax.annotate(<span class="st">'5% participation</span><span class="ch">\n</span><span class="st">above 20%'</span>, xy<span class="op">=</span>(<span class="dv">55</span>, <span class="dv">122</span>), fontsize<span class="op">=</span><span class="dv">11</span>,</span>
+<span id="cb1-25"><a href=""></a>            ha<span class="op">=</span><span class="st">'center'</span>, color<span class="op">=</span><span class="st">'darkgreen'</span>)</span>
+<span id="cb1-26"><a href=""></a>ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb1-27"><a href=""></a>plt.tight_layout()</span>
+<span id="cb1-28"><a href=""></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="td_ppn_case_study_files/figure-revealjs/cell-2-output-1.png" width="1333" height="469"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="decomposing-the-variable-return" class="slide level2">
+<h2>Decomposing the Variable Return</h2>
+<p>The variable return can be decomposed into two option payoffs:</p>
+<div class="fragment">
+<p><strong>1. Digital (binary) call option</strong> — pays $20 if <span class="math inline">\(\text{AR}_T \geq \text{AR}_0\)</span>:</p>
+<p><span class="math display">\[\$20 \times \mathbf{1}_{\{R_{\text{AR}} \geq 0\}} = \$20 \times \mathbf{1}_{\{\text{AR}_T \geq \text{AR}_0\}}\]</span></p>
+</div>
+<div class="fragment">
+<p><strong>2. Vanilla call option</strong> — 5% participation above 20% return:</p>
+<p><span class="math display">\[5\% \times \max(R_{\text{AR}} - 20\%,\; 0) \times \$100 = \frac{\$100}{\text{AR}_0} \times 5\% \times \max(\text{AR}_T - 1.2 \times \text{AR}_0,\; 0)\]</span></p>
+<p>A call with strike <span class="math inline">\(K = 1.2 \times \text{AR}_0 = 6{,}562.15\)</span>, scaled by <span class="math inline">\(5\% \times \$100 / \text{AR}_0\)</span>.</p>
+</div>
+<div class="fragment">
+<p><span class="math display">\[\boxed{\text{Fair value} = \underbrace{e^{-rT} \times \$100}_{\text{zero-coupon bond}} + \underbrace{\$20 \times e^{-rT} \times N(d_2)}_{\text{digital call}} + \underbrace{\frac{5}{AR_0} \times C(AR_0,\, 1.2 \times AR_0)}_{\text{scaled vanilla call}}}\]</span></p>
+</div>
+</section>
+<section id="the-ar-index-total-return-with-a-drag" class="slide level2">
+<h2>The AR Index: Total Return with a Drag</h2>
+<p>The underlying is <strong>not</strong> a standard equity index.</p>
+<ul>
+<li>The <strong>Total Return (TR)</strong> index reinvests all dividends</li>
+<li>The <strong>Adjusted Return (AR)</strong> index subtracts a fixed <strong>265 index points per year</strong></li>
+<li>This drag (~4.85% p.a.) enables the issuer to advertise a “boosted 20% return” — but the boost doesn’t even fully compensate for the drag (issuer margin is still 5%)</li>
+</ul>
+<div class="fragment">
+<p><span class="math display">\[\text{AR}_t = \text{TR}_t - 265 \times t\]</span></p>
+<p><strong>Implications for pricing:</strong></p>
+<ul>
+<li>The drag is a <strong>known, deterministic cash flow</strong> — like a continuous coupon stripped from the index</li>
+<li>It is <strong>not</strong> proportional to the index level (arithmetic, not geometric)</li>
+<li>We need a pricing framework that handles known cash flows cleanly</li>
+<li><strong>Key insight:</strong> the prepaid forward price framework (Theme 1) handles this exactly</li>
+</ul>
+</div>
+</section>
+<section id="prepaid-forward-prices-review" class="slide level2">
+<h2>Prepaid Forward Prices (Review)</h2>
+<p>The <strong>prepaid forward</strong> <span class="math inline">\(F^P_{0,T}(S)\)</span> is the price today of receiving the asset at time <span class="math inline">\(T\)</span>, with no intermediate cash flows:</p>
+<p><span class="math display">\[F^P_{0,T}(S) = S_0 - \text{PV}(\text{cash flows not received by derivative holder})\]</span></p>
+<div class="fragment">
+<table class="caption-top">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Underlying</th>
+<th>Prepaid forward</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Non-dividend stock</td>
+<td><span class="math inline">\(F^P = S_0\)</span></td>
+</tr>
+<tr class="even">
+<td>Discrete dividends <span class="math inline">\(D_{t_i}\)</span></td>
+<td><span class="math inline">\(F^P = S_0 - \sum_i D_{t_i}\, e^{-r t_i}\)</span></td>
+</tr>
+<tr class="odd">
+<td>Continuous yield <span class="math inline">\(\delta\)</span></td>
+<td><span class="math inline">\(F^P = S_0\, e^{-\delta T}\)</span></td>
+</tr>
+<tr class="even">
+<td><strong>AR index (265 pts/yr drag)</strong></td>
+<td><strong><span class="math inline">\(F^P = \text{AR}_0 - \text{PV(drag)}\)</span></strong></td>
+</tr>
+</tbody>
+</table>
+<p>The drag of 265 points per year is a <strong>continuous annuity</strong>:</p>
+<p><span class="math display">\[\text{PV(drag)} = \int_0^T 265\, e^{-rt}\, dt = 265 \times \frac{1 - e^{-rT}}{r}\]</span></p>
+</div>
+</section>
+<section id="deriving-fp-for-the-ar-index" class="slide level2">
+<h2>Deriving <span class="math inline">\(F^P\)</span> for the AR Index</h2>
+<p>With <span class="math inline">\(\text{AR}_0 = 5{,}468.46\)</span>, <span class="math inline">\(T = 4\)</span> years, <span class="math inline">\(r = 3\%\)</span>:</p>
+<div id="31f6435b" class="cell" data-execution_count="2">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href=""></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb2-2"><a href=""></a></span>
+<span id="cb2-3"><a href=""></a>AR_0 <span class="op">=</span> <span class="fl">5468.46</span></span>
+<span id="cb2-4"><a href=""></a>T, r, drag <span class="op">=</span> <span class="fl">4.0</span>, <span class="fl">0.03</span>, <span class="fl">265.0</span></span>
+<span id="cb2-5"><a href=""></a></span>
+<span id="cb2-6"><a href=""></a>PV_drag <span class="op">=</span> drag <span class="op">*</span> (<span class="dv">1</span> <span class="op">-</span> np.exp(<span class="op">-</span>r <span class="op">*</span> T)) <span class="op">/</span> r</span>
+<span id="cb2-7"><a href=""></a>FP_AR <span class="op">=</span> AR_0 <span class="op">-</span> PV_drag</span>
+<span id="cb2-8"><a href=""></a></span>
+<span id="cb2-9"><a href=""></a><span class="bu">print</span>(<span class="ss">f"PV(drag) = 265 × (1 - e^(-0.03×4)) / 0.03 = </span><span class="sc">{</span>PV_drag<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
+<span id="cb2-10"><a href=""></a><span class="bu">print</span>(<span class="ss">f"F^P(AR)  = </span><span class="sc">{</span>AR_0<span class="sc">:.2f}</span><span class="ss"> - </span><span class="sc">{</span>PV_drag<span class="sc">:.2f}</span><span class="ss"> = </span><span class="sc">{</span>FP_AR<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
+<span id="cb2-11"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Ratio    = F^P / AR_0 = </span><span class="sc">{</span>FP_AR<span class="op">/</span>AR_0<span class="sc">:.4f}</span><span class="ss">  (</span><span class="sc">{</span>(<span class="dv">1</span> <span class="op">-</span> FP_AR<span class="op">/</span>AR_0)<span class="op">*</span><span class="dv">100</span><span class="sc">:.1f}</span><span class="ss">% haircut)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>PV(drag) = 265 × (1 - e^(-0.03×4)) / 0.03 = 998.87
+F^P(AR)  = 5468.46 - 998.87 = 4469.59
+Ratio    = F^P / AR_0 = 0.8173  (18.3% haircut)</code></pre>
+</div>
+</div>
+<div class="fragment">
+<p>The drag destroys <strong>18.3% of the index value</strong> in present-value terms.</p>
+<p>Even if the TR index goes nowhere, the AR index will have <em>fallen</em> by ~1,000 points by maturity. This is why the “boosted 20% return” is not as generous as it sounds.</p>
+</div>
+</section>
+<section id="the-generalized-black-scholes-formula" class="slide level2">
+<h2>The Generalized Black-Scholes Formula</h2>
+<p>From Theme 5, the <strong>generalized Black-Scholes</strong> prices a European call using prepaid forwards:</p>
+<p><span class="math display">\[C = F^P_{0,T}(S) \cdot N(d_1) - F^P_{0,T}(K) \cdot N(d_2)\]</span></p>
+<p><span class="math display">\[d_1 = \frac{\ln\!\left(\frac{F^P_{0,T}(S)}{F^P_{0,T}(K)}\right) + \tfrac{1}{2}\sigma^2 T}{\sigma\sqrt{T}}, \qquad d_2 = d_1 - \sigma\sqrt{T}\]</span></p>
+<div class="fragment">
+<p>For our note (<span class="math inline">\(F^P_{0,T}(K) = K \cdot e^{-rT}\)</span> since the strike is a fixed amount):</p>
+<ul>
+<li><p><strong>Digital call</strong> (pays <span class="math inline">\(\$20\)</span> if <span class="math inline">\(\text{AR}_T \geq \text{AR}_0\)</span>): <span class="math display">\[\text{Digital} = \$20 \times e^{-rT} \times N(d_2) \quad \text{with } K = \text{AR}_0\]</span></p></li>
+<li><p><strong>Vanilla call</strong> (5% participation above 20%): <span class="math display">\[\text{Vanilla} = \frac{5}{\text{AR}_0} \times \Big[F^P(\text{AR}) \cdot N(d_1) - F^P(1.2 \times \text{AR}_0) \cdot N(d_2)\Big]\]</span></p></li>
+</ul>
+</div>
+</section>
+<section id="volatility-what-do-we-need" class="slide level2">
+<h2>Volatility: What Do We Need?</h2>
+<p>To apply Black-Scholes we need <span class="math inline">\(\sigma\)</span>. <strong>Challenge:</strong> The AR index has a short history.</p>
+<p><strong>Two approaches:</strong></p>
+<div class="columns">
+<div class="column" style="width:50%;">
+<h3 id="market-implied-volatility">1. Market-implied volatility</h3>
+<ul>
+<li>Use options on <strong>XIU</strong> (iShares S&amp;P/TSX 60 ETF)</li>
+<li>TSX 60 has very similar composition to the 20-stock index</li>
+<li>Extract ATM implied vol at longest available maturity</li>
+</ul>
+</div><div class="column" style="width:50%;">
+<h3 id="historical-variance-risk-premium">2. Historical + variance risk premium</h3>
+<ul>
+<li>Reconstruct the 20-stock portfolio from constituent data</li>
+<li>Compute realized variance over 5 years</li>
+<li>Add a <strong>variance risk premium</strong> (VRP = 0.015)</li>
+<li>Take the square root</li>
+</ul>
+</div></div>
+<div class="fragment">
+<p><strong>Index constituents</strong> (20 Canadian large-caps): Banks (5): BMO, BNS, CM, RY, TD | Energy (5): CNQ, ENB, TRP, PPL, TOU Telecom (3): BCE, RCI.B, T | Insurance (2): GWO, SLF | Mining (2): AEM, ABX Utilities (1): EMA | Consumer (1): QSR | Tech (1): SHOP</p>
+</div>
+</section>
+<section id="approach-1-market-implied-volatility" class="slide level2">
+<h2>Approach 1: Market-Implied Volatility</h2>
+<p><strong>Data source:</strong> Montreal Exchange (options on XIU.TO)</p>
+<p><strong>Challenges encountered:</strong></p>
+<ul>
+<li><code>yfinance</code> does not return option chains for Canadian underlyings</li>
+<li>TMX Money, Barchart use JavaScript-rendered content (not scrapable)</li>
+<li><strong>Solution:</strong> Scraped raw HTML from the Montreal Exchange website (embeds option data as JSON)</li>
+</ul>
+<div class="fragment">
+<p><strong>Data obtained:</strong> 1,220 option records across 16 expiry dates (February 2026 to March 2029). Backed out implied volatilities using <strong>Brent’s method</strong> (European BS inversion).</p>
+</div>
+<div class="fragment">
+<p><strong>ATM implied volatility term structure:</strong></p>
+<table class="caption-top">
+<thead>
+<tr class="header">
+<th>Maturity</th>
+<th>~10 months</th>
+<th>~1.1 years</th>
+<th>~2.1 years</th>
+<th>~3.1 years</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>ATM IV</td>
+<td>13.6%</td>
+<td>13.4%</td>
+<td>14.7%</td>
+<td><strong>15.5%</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Upward-sloping, consistent with typical equity markets. <strong>Selected: <span class="math inline">\(\sigma \approx 16\%\)</span></strong> (ATM IV at longest maturity ≈ 15.5%, extrapolated to <span class="math inline">\(T = 4\)</span> years).</p>
+</div>
+</section>
+<section id="approach-2-historical-variance-vrp" class="slide level2">
+<h2>Approach 2: Historical Variance + VRP</h2>
+<p>Download 5 years of daily adjusted prices for all 20 constituents, weight by <strong>index share amounts</strong>:</p>
+<div id="7a507e36" class="cell" data-execution_count="3">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href=""></a><span class="im">import</span> yfinance <span class="im">as</span> yf</span>
+<span id="cb4-2"><a href=""></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb4-3"><a href=""></a></span>
+<span id="cb4-4"><a href=""></a>constituents <span class="op">=</span> {</span>
+<span id="cb4-5"><a href=""></a>    <span class="st">'AEM.TO'</span>: <span class="fl">1.068889</span>, <span class="st">'BMO.TO'</span>: <span class="fl">1.618257</span>, <span class="st">'BNS.TO'</span>: <span class="fl">2.975524</span>,</span>
+<span id="cb4-6"><a href=""></a>    <span class="st">'ABX.TO'</span>: <span class="fl">4.476445</span>, <span class="st">'BCE.TO'</span>: <span class="fl">8.96346</span>,  <span class="st">'CM.TO'</span>:  <span class="fl">2.3997</span>,</span>
+<span id="cb4-7"><a href=""></a>    <span class="st">'CNQ.TO'</span>: <span class="fl">6.104161</span>, <span class="st">'EMA.TO'</span>: <span class="fl">4.413341</span>, <span class="st">'ENB.TO'</span>: <span class="fl">4.644166</span>,</span>
+<span id="cb4-8"><a href=""></a>    <span class="st">'GWO.TO'</span>: <span class="fl">4.69007</span>,  <span class="st">'PPL.TO'</span>: <span class="fl">5.61646</span>,  <span class="st">'QSR.TO'</span>: <span class="fl">3.22517</span>,</span>
+<span id="cb4-9"><a href=""></a>    <span class="st">'RCI-B.TO'</span>: <span class="fl">5.980347</span>, <span class="st">'RY.TO'</span>: <span class="fl">1.307227</span>, <span class="st">'SHOP.TO'</span>: <span class="fl">1.585145</span>,</span>
+<span id="cb4-10"><a href=""></a>    <span class="st">'SLF.TO'</span>: <span class="fl">3.516059</span>, <span class="st">'TRP.TO'</span>: <span class="fl">4.069168</span>, <span class="st">'T.TO'</span>:  <span class="fl">16.415244</span>,</span>
+<span id="cb4-11"><a href=""></a>    <span class="st">'TD.TO'</span>:  <span class="fl">2.34413</span>,  <span class="st">'TOU.TO'</span>: <span class="fl">4.911564</span>,</span>
+<span id="cb4-12"><a href=""></a>}</span>
+<span id="cb4-13"><a href=""></a>tickers <span class="op">=</span> <span class="bu">list</span>(constituents.keys())</span>
+<span id="cb4-14"><a href=""></a>shares <span class="op">=</span> np.array(<span class="bu">list</span>(constituents.values()))</span>
+<span id="cb4-15"><a href=""></a></span>
+<span id="cb4-16"><a href=""></a>data <span class="op">=</span> yf.download(tickers, period<span class="op">=</span><span class="st">'5y'</span>, auto_adjust<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb4-17"><a href=""></a>prices <span class="op">=</span> data[<span class="st">'Close'</span>][tickers].ffill()</span>
+<span id="cb4-18"><a href=""></a>portfolio <span class="op">=</span> (prices <span class="op">*</span> shares).<span class="bu">sum</span>(axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb4-19"><a href=""></a>log_ret <span class="op">=</span> np.log(portfolio <span class="op">/</span> portfolio.shift(<span class="dv">1</span>)).dropna()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div id="20a3ae85" class="cell" data-execution_count="4">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href=""></a>daily_var <span class="op">=</span> log_ret.var()</span>
+<span id="cb5-2"><a href=""></a>annual_var <span class="op">=</span> daily_var <span class="op">*</span> <span class="dv">252</span></span>
+<span id="cb5-3"><a href=""></a>vrp <span class="op">=</span> <span class="fl">0.015</span></span>
+<span id="cb5-4"><a href=""></a>total_var <span class="op">=</span> annual_var <span class="op">+</span> vrp</span>
+<span id="cb5-5"><a href=""></a></span>
+<span id="cb5-6"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Annualized realized variance:   σ² = </span><span class="sc">{</span>annual_var<span class="sc">:.4f}</span><span class="ss">  →  σ = </span><span class="sc">{</span>np<span class="sc">.</span>sqrt(annual_var)<span class="op">*</span><span class="dv">100</span><span class="sc">:.2f}</span><span class="ss">%"</span>)</span>
+<span id="cb5-7"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Variance risk premium:         +VRP = </span><span class="sc">{</span>vrp<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb5-8"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Total variance:           σ² + VRP  = </span><span class="sc">{</span>total_var<span class="sc">:.4f}</span><span class="ss">  →  σ = </span><span class="sc">{</span>np<span class="sc">.</span>sqrt(total_var)<span class="op">*</span><span class="dv">100</span><span class="sc">:.2f}</span><span class="ss">%"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Annualized realized variance:   σ² = 0.0113  →  σ = 10.65%
+Variance risk premium:         +VRP = 0.0150
+Total variance:           σ² + VRP  = 0.0263  →  σ = 16.23%</code></pre>
+</div>
+</div>
+</section>
+<section id="robustness-across-estimation-windows" class="slide level2">
+<h2>Robustness Across Estimation Windows</h2>
+<div id="6e835752" class="cell" data-fig-height="4.5" data-fig-width="14" data-execution_count="5">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href=""></a>windows <span class="op">=</span> [<span class="dv">63</span>, <span class="dv">126</span>, <span class="dv">252</span>, <span class="dv">504</span>, <span class="dv">756</span>, <span class="dv">1008</span>, <span class="bu">len</span>(log_ret)]</span>
+<span id="cb7-2"><a href=""></a>labels <span class="op">=</span> [<span class="st">'3m'</span>, <span class="st">'6m'</span>, <span class="st">'1y'</span>, <span class="st">'2y'</span>, <span class="st">'3y'</span>, <span class="st">'4y'</span>, <span class="st">'5y'</span>]</span>
+<span id="cb7-3"><a href=""></a>vars_hist <span class="op">=</span> []</span>
+<span id="cb7-4"><a href=""></a><span class="cf">for</span> w <span class="kw">in</span> windows:</span>
+<span id="cb7-5"><a href=""></a>    v <span class="op">=</span> log_ret.iloc[<span class="op">-</span>w:].var() <span class="op">*</span> <span class="dv">252</span></span>
+<span id="cb7-6"><a href=""></a>    vars_hist.append(v)</span>
+<span id="cb7-7"><a href=""></a></span>
+<span id="cb7-8"><a href=""></a>fig, (ax1, ax2) <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="fl">4.5</span>))</span>
+<span id="cb7-9"><a href=""></a></span>
+<span id="cb7-10"><a href=""></a>ax1.bar(labels, [v<span class="op">*</span><span class="dv">100</span> <span class="cf">for</span> v <span class="kw">in</span> vars_hist], color<span class="op">=</span><span class="st">'steelblue'</span>, alpha<span class="op">=</span><span class="fl">0.7</span>, label<span class="op">=</span><span class="st">'Historical σ²'</span>)</span>
+<span id="cb7-11"><a href=""></a>ax1.bar(labels, [<span class="fl">1.5</span>]<span class="op">*</span><span class="bu">len</span>(labels), bottom<span class="op">=</span>[v<span class="op">*</span><span class="dv">100</span> <span class="cf">for</span> v <span class="kw">in</span> vars_hist],</span>
+<span id="cb7-12"><a href=""></a>        color<span class="op">=</span><span class="st">'coral'</span>, alpha<span class="op">=</span><span class="fl">0.7</span>, label<span class="op">=</span><span class="st">'VRP (+1.5%)'</span>)</span>
+<span id="cb7-13"><a href=""></a>ax1.set_ylabel(<span class="st">'Annualized Variance (%)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb7-14"><a href=""></a>ax1.set_xlabel(<span class="st">'Estimation Window'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb7-15"><a href=""></a>ax1.set_title(<span class="st">'Realized Variance by Window'</span>, fontsize<span class="op">=</span><span class="dv">13</span>)</span>
+<span id="cb7-16"><a href=""></a>ax1.legend(fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb7-17"><a href=""></a>ax1.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>, axis<span class="op">=</span><span class="st">'y'</span>)</span>
+<span id="cb7-18"><a href=""></a></span>
+<span id="cb7-19"><a href=""></a>vols_total <span class="op">=</span> [np.sqrt(v <span class="op">+</span> <span class="fl">0.015</span>)<span class="op">*</span><span class="dv">100</span> <span class="cf">for</span> v <span class="kw">in</span> vars_hist]</span>
+<span id="cb7-20"><a href=""></a>ax2.bar(labels, vols_total, color<span class="op">=</span><span class="st">'darkgreen'</span>, alpha<span class="op">=</span><span class="fl">0.7</span>)</span>
+<span id="cb7-21"><a href=""></a>ax2.axhline(<span class="fl">16.0</span>, color<span class="op">=</span><span class="st">'red'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, linewidth<span class="op">=</span><span class="fl">1.5</span>, label<span class="op">=</span><span class="st">'Implied vol (16.0%)'</span>)</span>
+<span id="cb7-22"><a href=""></a>ax2.set_ylabel(<span class="st">'Volatility (%)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb7-23"><a href=""></a>ax2.set_xlabel(<span class="st">'Estimation Window'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb7-24"><a href=""></a>ax2.set_title(<span class="st">'σ = √(σ² + VRP) vs. Market Implied'</span>, fontsize<span class="op">=</span><span class="dv">13</span>)</span>
+<span id="cb7-25"><a href=""></a>ax2.legend(fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb7-26"><a href=""></a>ax2.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>, axis<span class="op">=</span><span class="st">'y'</span>)</span>
+<span id="cb7-27"><a href=""></a>ax2.set_ylim(<span class="dv">0</span>, <span class="dv">22</span>)</span>
+<span id="cb7-28"><a href=""></a></span>
+<span id="cb7-29"><a href=""></a>plt.tight_layout()</span>
+<span id="cb7-30"><a href=""></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="td_ppn_case_study_files/figure-revealjs/cell-6-output-1.png" width="1335" height="423"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The two approaches give <strong>consistent estimates</strong>: <span class="math inline">\(\sigma \approx 16\%\)</span>.</p>
+</section>
+<section id="pricing-the-note" class="slide level2">
+<h2>Pricing the Note</h2>
+<div id="30a4da0f" class="cell" data-execution_count="6">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href=""></a><span class="im">from</span> scipy.stats <span class="im">import</span> norm</span>
+<span id="cb8-2"><a href=""></a></span>
+<span id="cb8-3"><a href=""></a>sigma <span class="op">=</span> <span class="fl">0.1623</span>  <span class="co"># Historical + VRP</span></span>
+<span id="cb8-4"><a href=""></a>AR_0, T, r, drag <span class="op">=</span> <span class="fl">5468.46</span>, <span class="fl">4.0</span>, <span class="fl">0.03</span>, <span class="fl">265.0</span></span>
+<span id="cb8-5"><a href=""></a>PV_drag <span class="op">=</span> drag <span class="op">*</span> (<span class="dv">1</span> <span class="op">-</span> np.exp(<span class="op">-</span>r <span class="op">*</span> T)) <span class="op">/</span> r</span>
+<span id="cb8-6"><a href=""></a>FP_AR <span class="op">=</span> AR_0 <span class="op">-</span> PV_drag</span>
+<span id="cb8-7"><a href=""></a>pv_principal <span class="op">=</span> <span class="dv">100</span> <span class="op">*</span> np.exp(<span class="op">-</span>r <span class="op">*</span> T)</span>
+<span id="cb8-8"><a href=""></a></span>
+<span id="cb8-9"><a href=""></a><span class="co"># Digital call: $20 if AR_T &gt;= AR_0</span></span>
+<span id="cb8-10"><a href=""></a>K1 <span class="op">=</span> AR_0</span>
+<span id="cb8-11"><a href=""></a>FP_K1 <span class="op">=</span> K1 <span class="op">*</span> np.exp(<span class="op">-</span>r <span class="op">*</span> T)</span>
+<span id="cb8-12"><a href=""></a>d1_dig <span class="op">=</span> (np.log(FP_AR <span class="op">/</span> FP_K1) <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> sigma<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> T) <span class="op">/</span> (sigma <span class="op">*</span> np.sqrt(T))</span>
+<span id="cb8-13"><a href=""></a>d2_dig <span class="op">=</span> d1_dig <span class="op">-</span> sigma <span class="op">*</span> np.sqrt(T)</span>
+<span id="cb8-14"><a href=""></a>digital <span class="op">=</span> <span class="dv">20</span> <span class="op">*</span> np.exp(<span class="op">-</span>r <span class="op">*</span> T) <span class="op">*</span> norm.cdf(d2_dig)</span>
+<span id="cb8-15"><a href=""></a></span>
+<span id="cb8-16"><a href=""></a><span class="co"># Vanilla call: 5% participation, strike = 1.2 * AR_0</span></span>
+<span id="cb8-17"><a href=""></a>K2 <span class="op">=</span> <span class="fl">1.2</span> <span class="op">*</span> AR_0</span>
+<span id="cb8-18"><a href=""></a>FP_K2 <span class="op">=</span> K2 <span class="op">*</span> np.exp(<span class="op">-</span>r <span class="op">*</span> T)</span>
+<span id="cb8-19"><a href=""></a>d1_van <span class="op">=</span> (np.log(FP_AR <span class="op">/</span> FP_K2) <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> sigma<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> T) <span class="op">/</span> (sigma <span class="op">*</span> np.sqrt(T))</span>
+<span id="cb8-20"><a href=""></a>d2_van <span class="op">=</span> d1_van <span class="op">-</span> sigma <span class="op">*</span> np.sqrt(T)</span>
+<span id="cb8-21"><a href=""></a>call_val <span class="op">=</span> FP_AR <span class="op">*</span> norm.cdf(d1_van) <span class="op">-</span> FP_K2 <span class="op">*</span> norm.cdf(d2_van)</span>
+<span id="cb8-22"><a href=""></a>vanilla <span class="op">=</span> <span class="fl">0.05</span> <span class="op">*</span> (call_val <span class="op">/</span> AR_0) <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb8-23"><a href=""></a></span>
+<span id="cb8-24"><a href=""></a>fair_value <span class="op">=</span> pv_principal <span class="op">+</span> digital <span class="op">+</span> vanilla</span>
+<span id="cb8-25"><a href=""></a></span>
+<span id="cb8-26"><a href=""></a><span class="bu">print</span>(<span class="ss">f"PV of principal (zero-coupon bond):  $</span><span class="sc">{</span>pv_principal<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
+<span id="cb8-27"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Digital call ($20 × 1_</span><span class="ch">{{</span><span class="ss">AR≥AR₀</span><span class="ch">}}</span><span class="ss">):     $</span><span class="sc">{</span>digital<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
+<span id="cb8-28"><a href=""></a><span class="bu">print</span>(<span class="ss">f"  d₂ = </span><span class="sc">{</span>d2_dig<span class="sc">:.3f}</span><span class="ss">,  N(d₂) = </span><span class="sc">{</span>norm<span class="sc">.</span>cdf(d2_dig)<span class="sc">:.3f}</span><span class="ss">  (risk-neutral prob of positive return)"</span>)</span>
+<span id="cb8-29"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Vanilla call (5% above 20%):         $</span><span class="sc">{</span>vanilla<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
+<span id="cb8-30"><a href=""></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'─'</span><span class="op">*</span><span class="dv">45</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb8-31"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Fair value:                          $</span><span class="sc">{</span>fair_value<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
+<span id="cb8-32"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Issuer margin:                       $</span><span class="sc">{</span><span class="dv">100</span> <span class="op">-</span> fair_value<span class="sc">:.2f}</span><span class="ss">  (</span><span class="sc">{</span><span class="dv">100</span> <span class="op">-</span> fair_value<span class="sc">:.1f}</span><span class="ss">%)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>PV of principal (zero-coupon bond):  $88.69
+Digital call ($20 × 1_{AR≥AR₀}):     $6.02
+  d₂ = -0.414,  N(d₂) = 0.339  (risk-neutral prob of positive return)
+Vanilla call (5% above 20%):         $0.18
+─────────────────────────────────────────────
+Fair value:                          $94.89
+Issuer margin:                       $5.11  (5.1%)</code></pre>
+</div>
+</div>
+</section>
+<section id="sensitivity-to-volatility" class="slide level2">
+<h2>Sensitivity to Volatility</h2>
+<div id="11317e13" class="cell" data-fig-height="4.5" data-fig-width="14" data-execution_count="7">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href=""></a>sigmas <span class="op">=</span> np.linspace(<span class="fl">0.10</span>, <span class="fl">0.30</span>, <span class="dv">100</span>)</span>
+<span id="cb10-2"><a href=""></a>fair_values <span class="op">=</span> []</span>
+<span id="cb10-3"><a href=""></a>digitals <span class="op">=</span> []</span>
+<span id="cb10-4"><a href=""></a>vanillas <span class="op">=</span> []</span>
+<span id="cb10-5"><a href=""></a></span>
+<span id="cb10-6"><a href=""></a><span class="cf">for</span> s <span class="kw">in</span> sigmas:</span>
+<span id="cb10-7"><a href=""></a>    d2 <span class="op">=</span> (np.log(FP_AR <span class="op">/</span> FP_K1) <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> T) <span class="op">/</span> (s <span class="op">*</span> np.sqrt(T)) <span class="op">-</span> s <span class="op">*</span> np.sqrt(T)</span>
+<span id="cb10-8"><a href=""></a>    dig <span class="op">=</span> <span class="dv">20</span> <span class="op">*</span> np.exp(<span class="op">-</span>r <span class="op">*</span> T) <span class="op">*</span> norm.cdf(d2)</span>
+<span id="cb10-9"><a href=""></a>    d1v <span class="op">=</span> (np.log(FP_AR <span class="op">/</span> FP_K2) <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> s<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> T) <span class="op">/</span> (s <span class="op">*</span> np.sqrt(T))</span>
+<span id="cb10-10"><a href=""></a>    d2v <span class="op">=</span> d1v <span class="op">-</span> s <span class="op">*</span> np.sqrt(T)</span>
+<span id="cb10-11"><a href=""></a>    cv <span class="op">=</span> FP_AR <span class="op">*</span> norm.cdf(d1v) <span class="op">-</span> FP_K2 <span class="op">*</span> norm.cdf(d2v)</span>
+<span id="cb10-12"><a href=""></a>    van <span class="op">=</span> <span class="fl">0.05</span> <span class="op">*</span> (cv <span class="op">/</span> AR_0) <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb10-13"><a href=""></a>    fair_values.append(pv_principal <span class="op">+</span> dig <span class="op">+</span> van)</span>
+<span id="cb10-14"><a href=""></a>    digitals.append(dig)</span>
+<span id="cb10-15"><a href=""></a>    vanillas.append(van)</span>
+<span id="cb10-16"><a href=""></a></span>
+<span id="cb10-17"><a href=""></a>fig, (ax1, ax2) <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="fl">4.5</span>))</span>
+<span id="cb10-18"><a href=""></a></span>
+<span id="cb10-19"><a href=""></a>ax1.plot(sigmas<span class="op">*</span><span class="dv">100</span>, fair_values, <span class="st">'b-'</span>, linewidth<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb10-20"><a href=""></a>ax1.axvline(<span class="fl">16.23</span>, color<span class="op">=</span><span class="st">'green'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.7</span>, label<span class="op">=</span><span class="st">'Hist+VRP (16.2%)'</span>)</span>
+<span id="cb10-21"><a href=""></a>ax1.axvline(<span class="fl">16.0</span>, color<span class="op">=</span><span class="st">'red'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.7</span>, label<span class="op">=</span><span class="st">'Implied (16.0%)'</span>)</span>
+<span id="cb10-22"><a href=""></a>ax1.set_xlabel(<span class="st">'Volatility (%)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb10-23"><a href=""></a>ax1.set_ylabel(<span class="st">'Fair Value ($)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb10-24"><a href=""></a>ax1.set_title(<span class="st">'Note Fair Value vs. Volatility'</span>, fontsize<span class="op">=</span><span class="dv">13</span>)</span>
+<span id="cb10-25"><a href=""></a>ax1.legend(fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb10-26"><a href=""></a>ax1.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb10-27"><a href=""></a></span>
+<span id="cb10-28"><a href=""></a>ax2.plot(sigmas<span class="op">*</span><span class="dv">100</span>, digitals, <span class="st">'b-'</span>, linewidth<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="st">'Digital call'</span>)</span>
+<span id="cb10-29"><a href=""></a>ax2.plot(sigmas<span class="op">*</span><span class="dv">100</span>, [v <span class="op">*</span> <span class="dv">10</span> <span class="cf">for</span> v <span class="kw">in</span> vanillas], <span class="st">'r-'</span>, linewidth<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="st">'Vanilla call (×10)'</span>)</span>
+<span id="cb10-30"><a href=""></a>ax2.axvline(<span class="fl">16.23</span>, color<span class="op">=</span><span class="st">'green'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb10-31"><a href=""></a>ax2.set_xlabel(<span class="st">'Volatility (%)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb10-32"><a href=""></a>ax2.set_ylabel(<span class="st">'Value ($)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb10-33"><a href=""></a>ax2.set_title(<span class="st">'Option Components vs. Volatility'</span>, fontsize<span class="op">=</span><span class="dv">13</span>)</span>
+<span id="cb10-34"><a href=""></a>ax2.legend(fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb10-35"><a href=""></a>ax2.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb10-36"><a href=""></a></span>
+<span id="cb10-37"><a href=""></a>plt.tight_layout()</span>
+<span id="cb10-38"><a href=""></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div>
+<figure>
+<p><img data-src="td_ppn_case_study_files/figure-revealjs/cell-8-output-1.png" width="1335" height="422"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The fair value is <strong>remarkably insensitive to volatility</strong> — it varies only between $94 and $96 across a wide range.</p>
+</section>
+<section id="continuous-dividend-yield-approximation" class="slide level2">
+<h2>Continuous Dividend Yield Approximation</h2>
+<p>Approximate the drag as a <strong>continuous proportional yield</strong>: <span class="math inline">\(\delta \approx 265 / \text{AR}_0 = 4.85\%\)</span>.</p>
+<p>Then <span class="math inline">\(F^P_{\text{approx}} = \text{AR}_0 \times e^{-\delta T}\)</span> and we use standard BS with continuous yield.</p>
+<div id="0365b54b" class="cell" data-execution_count="8">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href=""></a>delta <span class="op">=</span> drag <span class="op">/</span> AR_0</span>
+<span id="cb11-2"><a href=""></a>FP_approx <span class="op">=</span> AR_0 <span class="op">*</span> np.exp(<span class="op">-</span>delta <span class="op">*</span> T)</span>
+<span id="cb11-3"><a href=""></a></span>
+<span id="cb11-4"><a href=""></a>d2_approx <span class="op">=</span> (np.log(AR_0 <span class="op">/</span> AR_0) <span class="op">+</span> (r <span class="op">-</span> delta <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> sigma<span class="op">**</span><span class="dv">2</span>) <span class="op">*</span> T) <span class="op">/</span> (sigma <span class="op">*</span> np.sqrt(T))</span>
+<span id="cb11-5"><a href=""></a>digital_approx <span class="op">=</span> <span class="dv">20</span> <span class="op">*</span> np.exp(<span class="op">-</span>r <span class="op">*</span> T) <span class="op">*</span> norm.cdf(d2_approx)</span>
+<span id="cb11-6"><a href=""></a></span>
+<span id="cb11-7"><a href=""></a>d1v_a <span class="op">=</span> (np.log(AR_0 <span class="op">/</span> (<span class="fl">1.2</span><span class="op">*</span>AR_0)) <span class="op">+</span> (r <span class="op">-</span> delta <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> sigma<span class="op">**</span><span class="dv">2</span>) <span class="op">*</span> T) <span class="op">/</span> (sigma <span class="op">*</span> np.sqrt(T))</span>
+<span id="cb11-8"><a href=""></a>d2v_a <span class="op">=</span> d1v_a <span class="op">-</span> sigma <span class="op">*</span> np.sqrt(T)</span>
+<span id="cb11-9"><a href=""></a>cv_a <span class="op">=</span> AR_0<span class="op">*</span>np.exp(<span class="op">-</span>delta<span class="op">*</span>T)<span class="op">*</span>norm.cdf(d1v_a) <span class="op">-</span> <span class="fl">1.2</span><span class="op">*</span>AR_0<span class="op">*</span>np.exp(<span class="op">-</span>r<span class="op">*</span>T)<span class="op">*</span>norm.cdf(d2v_a)</span>
+<span id="cb11-10"><a href=""></a>vanilla_approx <span class="op">=</span> <span class="fl">0.05</span> <span class="op">*</span> (cv_a <span class="op">/</span> AR_0) <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb11-11"><a href=""></a></span>
+<span id="cb11-12"><a href=""></a>fv_approx <span class="op">=</span> pv_principal <span class="op">+</span> digital_approx <span class="op">+</span> vanilla_approx</span>
+<span id="cb11-13"><a href=""></a></span>
+<span id="cb11-14"><a href=""></a><span class="bu">print</span>(<span class="ss">f"δ = </span><span class="sc">{</span>delta<span class="sc">:.4f}</span><span class="ss"> (</span><span class="sc">{</span>delta<span class="op">*</span><span class="dv">100</span><span class="sc">:.2f}</span><span class="ss">%)"</span>)</span>
+<span id="cb11-15"><a href=""></a><span class="bu">print</span>(<span class="ss">f"F^P (continuous yield): </span><span class="sc">{</span>FP_approx<span class="sc">:.2f}</span><span class="ss">   vs.   F^P (exact): </span><span class="sc">{</span>FP_AR<span class="sc">:.2f}</span><span class="ss">   (diff: </span><span class="sc">{</span>FP_approx <span class="op">-</span> FP_AR<span class="sc">:.2f}</span><span class="ss">)"</span>)</span>
+<span id="cb11-16"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Fair value (approx):    $</span><span class="sc">{</span>fv_approx<span class="sc">:.2f}</span><span class="ss">   vs.   Fair value (exact): $</span><span class="sc">{</span>fair_value<span class="sc">:.2f}</span><span class="ss">   (diff: $</span><span class="sc">{</span>fv_approx <span class="op">-</span> fair_value<span class="sc">:.2f}</span><span class="ss">)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>δ = 0.0485 (4.85%)
+F^P (continuous yield): 4504.87   vs.   F^P (exact): 4469.59   (diff: 35.28)
+Fair value (approx):    $95.06   vs.   Fair value (exact): $94.89   (diff: $0.17)</code></pre>
+</div>
+</div>
+<div class="fragment">
+<p>Only <strong>$0.17 error</strong> on a $100 note. The continuous yield slightly understates the drag (proportional to level, while the actual drag is a fixed 265 points).</p>
+</div>
+</section>
+<section id="expected-return-to-the-investor" class="slide level2">
+<h2>Expected Return to the Investor</h2>
+<p>Assume the <strong>TR index</strong> (before drag) has expected return <span class="math inline">\(\mu_{\text{TR}}\)</span>. With <span class="math inline">\(\delta = 265/\text{AR}_0 = 4.85\%\)</span>:</p>
+<p><span class="math display">\[\mu_{\text{AR}} = \mu_{\text{TR}} - \delta\]</span></p>
+<p>The expected payoff uses <strong>BS formulas with <span class="math inline">\(\mu_{\text{AR}}\)</span> replacing <span class="math inline">\(r\)</span></strong> (physical measure <span class="math inline">\(\mathbb{P}\)</span>):</p>
+<p><span class="math display">\[\mathbb{P}(\text{AR}_T \geq K) = N\!\left(\frac{(\mu_{\text{AR}} - \tfrac{1}{2}\sigma^2)T}{\sigma\sqrt{T}}\right), \qquad \mathbb{E}^{\mathbb{P}}[\max(\text{AR}_T - K, 0)] = \text{AR}_0\, e^{\mu_{\text{AR}} T}\, N(d_1^{\mathbb{P}}) - K\, N(d_2^{\mathbb{P}})\]</span></p>
+<div id="2be0a608" class="cell" data-execution_count="9">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href=""></a>mu_TRs <span class="op">=</span> [<span class="fl">0.02</span>, <span class="fl">0.04</span>, <span class="fl">0.06</span>]</span>
+<span id="cb13-2"><a href=""></a>sigma_P <span class="op">=</span> <span class="fl">0.1623</span></span>
+<span id="cb13-3"><a href=""></a>delta_drag <span class="op">=</span> drag <span class="op">/</span> AR_0</span>
+<span id="cb13-4"><a href=""></a></span>
+<span id="cb13-5"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Drag as continuous yield: δ = </span><span class="sc">{</span>delta_drag<span class="op">*</span><span class="dv">100</span><span class="sc">:.2f}</span><span class="ss">%</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb13-6"><a href=""></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'μ_TR'</span><span class="sc">:&gt;5}</span><span class="ss">  </span><span class="sc">{</span><span class="st">'μ_AR'</span><span class="sc">:&gt;7}</span><span class="ss">  </span><span class="sc">{</span><span class="st">'P(R≥0)'</span><span class="sc">:&gt;7}</span><span class="ss">  </span><span class="sc">{</span><span class="st">'E[dig]'</span><span class="sc">:&gt;7}</span><span class="ss">  </span><span class="sc">{</span><span class="st">'E[van]'</span><span class="sc">:&gt;7}</span><span class="ss">  </span><span class="sc">{</span><span class="st">'E[payoff]'</span><span class="sc">:&gt;9}</span><span class="ss">  </span><span class="sc">{</span><span class="st">'E[ann ret]'</span><span class="sc">:&gt;10}</span><span class="ss">"</span>)</span>
+<span id="cb13-7"><a href=""></a><span class="bu">print</span>(<span class="st">"─"</span> <span class="op">*</span> <span class="dv">68</span>)</span>
+<span id="cb13-8"><a href=""></a></span>
+<span id="cb13-9"><a href=""></a><span class="cf">for</span> mu_TR <span class="kw">in</span> mu_TRs:</span>
+<span id="cb13-10"><a href=""></a>    mu_AR <span class="op">=</span> mu_TR <span class="op">-</span> delta_drag</span>
+<span id="cb13-11"><a href=""></a>    d2_P <span class="op">=</span> (mu_AR <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> sigma_P<span class="op">**</span><span class="dv">2</span>) <span class="op">*</span> T <span class="op">/</span> (sigma_P <span class="op">*</span> np.sqrt(T))</span>
+<span id="cb13-12"><a href=""></a>    prob_positive <span class="op">=</span> norm.cdf(d2_P)</span>
+<span id="cb13-13"><a href=""></a>    E_digital <span class="op">=</span> <span class="dv">20</span> <span class="op">*</span> prob_positive</span>
+<span id="cb13-14"><a href=""></a></span>
+<span id="cb13-15"><a href=""></a>    K_v <span class="op">=</span> <span class="fl">1.2</span> <span class="op">*</span> AR_0</span>
+<span id="cb13-16"><a href=""></a>    d1_P <span class="op">=</span> (np.log(AR_0 <span class="op">/</span> K_v) <span class="op">+</span> (mu_AR <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> sigma_P<span class="op">**</span><span class="dv">2</span>) <span class="op">*</span> T) <span class="op">/</span> (sigma_P <span class="op">*</span> np.sqrt(T))</span>
+<span id="cb13-17"><a href=""></a>    d2_Pv <span class="op">=</span> d1_P <span class="op">-</span> sigma_P <span class="op">*</span> np.sqrt(T)</span>
+<span id="cb13-18"><a href=""></a>    E_call <span class="op">=</span> AR_0 <span class="op">*</span> np.exp(mu_AR <span class="op">*</span> T) <span class="op">*</span> norm.cdf(d1_P) <span class="op">-</span> K_v <span class="op">*</span> norm.cdf(d2_Pv)</span>
+<span id="cb13-19"><a href=""></a>    E_vanilla <span class="op">=</span> <span class="fl">0.05</span> <span class="op">*</span> (E_call <span class="op">/</span> AR_0) <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb13-20"><a href=""></a></span>
+<span id="cb13-21"><a href=""></a>    E_payoff <span class="op">=</span> <span class="dv">100</span> <span class="op">+</span> E_digital <span class="op">+</span> E_vanilla</span>
+<span id="cb13-22"><a href=""></a>    ann_ret <span class="op">=</span> (E_payoff <span class="op">/</span> <span class="dv">100</span>) <span class="op">**</span> (<span class="dv">1</span><span class="op">/</span>T) <span class="op">-</span> <span class="dv">1</span></span>
+<span id="cb13-23"><a href=""></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>mu_TR<span class="sc">:&gt;5.0%}</span><span class="ss">  </span><span class="sc">{</span>mu_AR<span class="sc">:&gt;+7.2%}</span><span class="ss">  </span><span class="sc">{</span>prob_positive<span class="sc">:&gt;6.1%}</span><span class="ss">  "</span></span>
+<span id="cb13-24"><a href=""></a>          <span class="ss">f"$</span><span class="sc">{</span>E_digital<span class="sc">:&gt;6.2f}</span><span class="ss">  $</span><span class="sc">{</span>E_vanilla<span class="sc">:&gt;6.2f}</span><span class="ss">  $</span><span class="sc">{</span>E_payoff<span class="sc">:&gt;8.2f}</span><span class="ss">  </span><span class="sc">{</span>ann_ret<span class="sc">:&gt;9.2%}</span><span class="ss">"</span>)</span>
+<span id="cb13-25"><a href=""></a></span>
+<span id="cb13-26"><a href=""></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Risk-free benchmark: $100 at r = 3% → $</span><span class="sc">{</span><span class="dv">100</span><span class="op">*</span>np<span class="sc">.</span>exp(r<span class="op">*</span>T)<span class="sc">:.2f}</span><span class="ss"> (3.05% p.a.)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Drag as continuous yield: δ = 4.85%
+
+ μ_TR     μ_AR   P(R≥0)   E[dig]   E[van]  E[payoff]  E[ann ret]
+────────────────────────────────────────────────────────────────────
+   2%   -2.85%   30.4%  $  6.08  $  0.16  $  106.24      1.53%
+   4%   -0.85%   39.5%  $  7.90  $  0.26  $  108.16      1.98%
+   6%   +1.15%   49.2%  $  9.84  $  0.40  $  110.24      2.47%
+
+Risk-free benchmark: $100 at r = 3% → $112.75 (3.05% p.a.)</code></pre>
+</div>
+</div>
+<p>The drag (<span class="math inline">\(\delta = 4.85\%\)</span>) exceeds the low-return scenarios, pushing <span class="math inline">\(\mu_{\text{AR}}\)</span> <strong>negative</strong>.</p>
+</section>
+<section id="summary-of-results" class="slide level2">
+<h2>Summary of Results</h2>
+<div class="columns">
+<div class="column" style="width:55%;">
+<table class="caption-top">
+<thead>
+<tr class="header">
+<th></th>
+<th>Hist + VRP</th>
+<th>Implied</th>
+<th>Cont. yield</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(\sigma\)</span></td>
+<td>16.23%</td>
+<td>16.00%</td>
+<td>16.23%</td>
+</tr>
+<tr class="even">
+<td>PV principal</td>
+<td>$88.69</td>
+<td>$88.69</td>
+<td>$88.69</td>
+</tr>
+<tr class="odd">
+<td>Digital call</td>
+<td>$6.02</td>
+<td>$6.01</td>
+<td>$6.18</td>
+</tr>
+<tr class="even">
+<td>Vanilla call</td>
+<td>$0.18</td>
+<td>$0.17</td>
+<td>$0.18</td>
+</tr>
+<tr class="odd">
+<td><strong>Fair value</strong></td>
+<td><strong>$94.89</strong></td>
+<td><strong>$94.87</strong></td>
+<td><strong>$95.06</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Issuer margin</strong></td>
+<td><strong>5.1%</strong></td>
+<td><strong>5.1%</strong></td>
+<td><strong>4.9%</strong></td>
+</tr>
+</tbody>
+</table>
+</div><div class="column" style="width:45%;">
+<p><strong>Key takeaways:</strong></p>
+<ol type="1">
+<li>The 265-point drag destroys 18% of the index value — the “boosted return” mostly compensates for this</li>
+<li>Risk-neutral prob. of positive return: only <strong>34%</strong></li>
+<li>Issuer margin is ~<strong>5%</strong>, of which 2% is selling commission</li>
+<li>Result is <strong>robust</strong> to vol estimate and continuous-yield approximation</li>
+<li>The prepaid forward framework handles the non-proportional drag cleanly</li>
+</ol>
+</div></div>
+<div class="callout callout-important callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<p><strong>Caveat</strong></p>
+</div>
+<div class="callout-content">
+<p>This ignores TD’s credit risk. The principal guarantee is only as good as TD’s ability to pay in 2030.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="what-if-the-note-were-designed-differently" class="slide level2">
+<h2>What If the Note Were Designed Differently?</h2>
+<div id="e891ce32" class="cell" data-execution_count="10">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href=""></a><span class="im">from</span> scipy.optimize <span class="im">import</span> brentq</span>
+<span id="cb15-2"><a href=""></a></span>
+<span id="cb15-3"><a href=""></a>sigma <span class="op">=</span> <span class="fl">0.1623</span></span>
+<span id="cb15-4"><a href=""></a>AR_0, T, r, drag <span class="op">=</span> <span class="fl">5468.46</span>, <span class="fl">4.0</span>, <span class="fl">0.03</span>, <span class="fl">265.0</span></span>
+<span id="cb15-5"><a href=""></a>PV_drag <span class="op">=</span> drag <span class="op">*</span> (<span class="dv">1</span> <span class="op">-</span> np.exp(<span class="op">-</span>r <span class="op">*</span> T)) <span class="op">/</span> r</span>
+<span id="cb15-6"><a href=""></a>FP_AR <span class="op">=</span> AR_0 <span class="op">-</span> PV_drag</span>
+<span id="cb15-7"><a href=""></a>pv_principal <span class="op">=</span> <span class="dv">100</span> <span class="op">*</span> np.exp(<span class="op">-</span>r <span class="op">*</span> T)</span>
+<span id="cb15-8"><a href=""></a>delta_drag <span class="op">=</span> drag <span class="op">/</span> AR_0</span>
+<span id="cb15-9"><a href=""></a></span>
+<span id="cb15-10"><a href=""></a><span class="kw">def</span> expected_return_atm_call(alpha, mu_TR):</span>
+<span id="cb15-11"><a href=""></a>    <span class="co">"""Expected annualized return for a note with participation alpha in ATM call."""</span></span>
+<span id="cb15-12"><a href=""></a>    mu_AR <span class="op">=</span> mu_TR <span class="op">-</span> delta_drag</span>
+<span id="cb15-13"><a href=""></a>    K <span class="op">=</span> AR_0</span>
+<span id="cb15-14"><a href=""></a>    d1_P <span class="op">=</span> (np.log(AR_0 <span class="op">/</span> K) <span class="op">+</span> (mu_AR <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> sigma<span class="op">**</span><span class="dv">2</span>) <span class="op">*</span> T) <span class="op">/</span> (sigma <span class="op">*</span> np.sqrt(T))</span>
+<span id="cb15-15"><a href=""></a>    d2_P <span class="op">=</span> d1_P <span class="op">-</span> sigma <span class="op">*</span> np.sqrt(T)</span>
+<span id="cb15-16"><a href=""></a>    E_call <span class="op">=</span> AR_0 <span class="op">*</span> np.exp(mu_AR <span class="op">*</span> T) <span class="op">*</span> norm.cdf(d1_P) <span class="op">-</span> K <span class="op">*</span> norm.cdf(d2_P)</span>
+<span id="cb15-17"><a href=""></a>    E_payoff <span class="op">=</span> <span class="dv">100</span> <span class="op">+</span> alpha <span class="op">*</span> (E_call <span class="op">/</span> AR_0) <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb15-18"><a href=""></a>    <span class="cf">return</span> (E_payoff <span class="op">/</span> <span class="dv">100</span>) <span class="op">**</span> (<span class="dv">1</span><span class="op">/</span>T) <span class="op">-</span> <span class="dv">1</span></span>
+<span id="cb15-19"><a href=""></a></span>
+<span id="cb15-20"><a href=""></a><span class="kw">def</span> expected_return_digital(boost, mu_TR):</span>
+<span id="cb15-21"><a href=""></a>    <span class="co">"""Expected annualized return for a note with digital($boost) + 5% vanilla."""</span></span>
+<span id="cb15-22"><a href=""></a>    mu_AR <span class="op">=</span> mu_TR <span class="op">-</span> delta_drag</span>
+<span id="cb15-23"><a href=""></a>    <span class="co"># Digital</span></span>
+<span id="cb15-24"><a href=""></a>    d2_P <span class="op">=</span> (mu_AR <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> sigma<span class="op">**</span><span class="dv">2</span>) <span class="op">*</span> T <span class="op">/</span> (sigma <span class="op">*</span> np.sqrt(T))</span>
+<span id="cb15-25"><a href=""></a>    E_dig <span class="op">=</span> boost <span class="op">*</span> norm.cdf(d2_P)</span>
+<span id="cb15-26"><a href=""></a>    <span class="co"># Vanilla</span></span>
+<span id="cb15-27"><a href=""></a>    K_v <span class="op">=</span> (<span class="dv">1</span> <span class="op">+</span> boost <span class="op">/</span> <span class="dv">100</span>) <span class="op">*</span> AR_0</span>
+<span id="cb15-28"><a href=""></a>    d1_P <span class="op">=</span> (np.log(AR_0 <span class="op">/</span> K_v) <span class="op">+</span> (mu_AR <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> sigma<span class="op">**</span><span class="dv">2</span>) <span class="op">*</span> T) <span class="op">/</span> (sigma <span class="op">*</span> np.sqrt(T))</span>
+<span id="cb15-29"><a href=""></a>    d2_Pv <span class="op">=</span> d1_P <span class="op">-</span> sigma <span class="op">*</span> np.sqrt(T)</span>
+<span id="cb15-30"><a href=""></a>    E_call <span class="op">=</span> AR_0 <span class="op">*</span> np.exp(mu_AR <span class="op">*</span> T) <span class="op">*</span> norm.cdf(d1_P) <span class="op">-</span> K_v <span class="op">*</span> norm.cdf(d2_Pv)</span>
+<span id="cb15-31"><a href=""></a>    E_van <span class="op">=</span> <span class="fl">0.05</span> <span class="op">*</span> (E_call <span class="op">/</span> AR_0) <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb15-32"><a href=""></a>    E_payoff <span class="op">=</span> <span class="dv">100</span> <span class="op">+</span> E_dig <span class="op">+</span> E_van</span>
+<span id="cb15-33"><a href=""></a>    <span class="cf">return</span> (E_payoff <span class="op">/</span> <span class="dv">100</span>) <span class="op">**</span> (<span class="dv">1</span><span class="op">/</span>T) <span class="op">-</span> <span class="dv">1</span></span>
+<span id="cb15-34"><a href=""></a></span>
+<span id="cb15-35"><a href=""></a><span class="co"># --- Alternative 1: Simple ATM call, no digital ---</span></span>
+<span id="cb15-36"><a href=""></a>K_atm <span class="op">=</span> AR_0</span>
+<span id="cb15-37"><a href=""></a>FP_K_atm <span class="op">=</span> K_atm <span class="op">*</span> np.exp(<span class="op">-</span>r <span class="op">*</span> T)</span>
+<span id="cb15-38"><a href=""></a>d1_atm <span class="op">=</span> (np.log(FP_AR <span class="op">/</span> FP_K_atm) <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> sigma<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> T) <span class="op">/</span> (sigma <span class="op">*</span> np.sqrt(T))</span>
+<span id="cb15-39"><a href=""></a>d2_atm <span class="op">=</span> d1_atm <span class="op">-</span> sigma <span class="op">*</span> np.sqrt(T)</span>
+<span id="cb15-40"><a href=""></a>C_atm <span class="op">=</span> FP_AR <span class="op">*</span> norm.cdf(d1_atm) <span class="op">-</span> FP_K_atm <span class="op">*</span> norm.cdf(d2_atm)</span>
+<span id="cb15-41"><a href=""></a>cost_100pct <span class="op">=</span> C_atm <span class="op">/</span> AR_0 <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb15-42"><a href=""></a></span>
+<span id="cb15-43"><a href=""></a><span class="bu">print</span>(<span class="st">"ALTERNATIVE 1: No digital, just ATM call (K = AR₀), participation α"</span>)</span>
+<span id="cb15-44"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Cost of 100% participation = $</span><span class="sc">{</span>cost_100pct<span class="sc">:.2f}</span><span class="ss"> per $100 notional</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb15-45"><a href=""></a><span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span><span class="st">'Margin'</span><span class="sc">:&gt;7}</span><span class="ss">  </span><span class="sc">{</span><span class="st">'α'</span><span class="sc">:&gt;6}</span><span class="ss">  </span><span class="sc">{</span><span class="st">'E[ret] μ=4%'</span><span class="sc">:&gt;12}</span><span class="ss">  </span><span class="sc">{</span><span class="st">'E[ret] μ=6%'</span><span class="sc">:&gt;12}</span><span class="ss">"</span>)</span>
+<span id="cb15-46"><a href=""></a><span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span><span class="st">'─'</span><span class="op">*</span><span class="dv">44</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb15-47"><a href=""></a><span class="cf">for</span> margin <span class="kw">in</span> [<span class="dv">5</span>, <span class="dv">1</span>, <span class="dv">0</span>]:</span>
+<span id="cb15-48"><a href=""></a>    budget <span class="op">=</span> <span class="dv">100</span> <span class="op">-</span> pv_principal <span class="op">-</span> margin</span>
+<span id="cb15-49"><a href=""></a>    alpha <span class="op">=</span> budget <span class="op">/</span> cost_100pct</span>
+<span id="cb15-50"><a href=""></a>    er4 <span class="op">=</span> expected_return_atm_call(alpha, <span class="fl">0.04</span>)</span>
+<span id="cb15-51"><a href=""></a>    er6 <span class="op">=</span> expected_return_atm_call(alpha, <span class="fl">0.06</span>)</span>
+<span id="cb15-52"><a href=""></a>    <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span>margin<span class="sc">:&gt;6.0f}</span><span class="ss">%  </span><span class="sc">{</span>alpha<span class="op">*</span><span class="dv">100</span><span class="sc">:&gt;5.0f}</span><span class="ss">%  </span><span class="sc">{</span>er4<span class="sc">:&gt;11.2%}</span><span class="ss">  </span><span class="sc">{</span>er6<span class="sc">:&gt;11.2%}</span><span class="ss">"</span>)</span>
+<span id="cb15-53"><a href=""></a></span>
+<span id="cb15-54"><a href=""></a><span class="co"># --- Alternative 2: Keep digital+vanilla structure, solve for boost ---</span></span>
+<span id="cb15-55"><a href=""></a>FP_K1 <span class="op">=</span> AR_0 <span class="op">*</span> np.exp(<span class="op">-</span>r <span class="op">*</span> T)</span>
+<span id="cb15-56"><a href=""></a>d1_d <span class="op">=</span> (np.log(FP_AR <span class="op">/</span> FP_K1) <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> sigma<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> T) <span class="op">/</span> (sigma <span class="op">*</span> np.sqrt(T))</span>
+<span id="cb15-57"><a href=""></a>d2_d <span class="op">=</span> d1_d <span class="op">-</span> sigma <span class="op">*</span> np.sqrt(T)</span>
+<span id="cb15-58"><a href=""></a>Nd2 <span class="op">=</span> norm.cdf(d2_d)</span>
+<span id="cb15-59"><a href=""></a></span>
+<span id="cb15-60"><a href=""></a><span class="kw">def</span> total_option_value(boost):</span>
+<span id="cb15-61"><a href=""></a>    digital <span class="op">=</span> boost <span class="op">*</span> np.exp(<span class="op">-</span>r <span class="op">*</span> T) <span class="op">*</span> Nd2</span>
+<span id="cb15-62"><a href=""></a>    K_van <span class="op">=</span> (<span class="dv">1</span> <span class="op">+</span> boost <span class="op">/</span> <span class="dv">100</span>) <span class="op">*</span> AR_0</span>
+<span id="cb15-63"><a href=""></a>    FP_Kv <span class="op">=</span> K_van <span class="op">*</span> np.exp(<span class="op">-</span>r <span class="op">*</span> T)</span>
+<span id="cb15-64"><a href=""></a>    d1v <span class="op">=</span> (np.log(FP_AR <span class="op">/</span> FP_Kv) <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> sigma<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> T) <span class="op">/</span> (sigma <span class="op">*</span> np.sqrt(T))</span>
+<span id="cb15-65"><a href=""></a>    d2v <span class="op">=</span> d1v <span class="op">-</span> sigma <span class="op">*</span> np.sqrt(T)</span>
+<span id="cb15-66"><a href=""></a>    cv <span class="op">=</span> FP_AR <span class="op">*</span> norm.cdf(d1v) <span class="op">-</span> FP_Kv <span class="op">*</span> norm.cdf(d2v)</span>
+<span id="cb15-67"><a href=""></a>    vanilla <span class="op">=</span> <span class="fl">0.05</span> <span class="op">*</span> (cv <span class="op">/</span> AR_0) <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb15-68"><a href=""></a>    <span class="cf">return</span> digital <span class="op">+</span> vanilla</span>
+<span id="cb15-69"><a href=""></a></span>
+<span id="cb15-70"><a href=""></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">ALTERNATIVE 2: Digital + 5% participation, solve for boost level"</span>)</span>
+<span id="cb15-71"><a href=""></a><span class="bu">print</span>(<span class="ss">f"N(d₂) = </span><span class="sc">{</span>Nd2<span class="sc">:.3f}</span><span class="ss"> — risk-neutral prob of receiving the boost: </span><span class="sc">{</span>Nd2<span class="sc">:.0%}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb15-72"><a href=""></a><span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span><span class="st">'Margin'</span><span class="sc">:&gt;7}</span><span class="ss">  </span><span class="sc">{</span><span class="st">'Boost'</span><span class="sc">:&gt;6}</span><span class="ss">  </span><span class="sc">{</span><span class="st">'E[ret] μ=4%'</span><span class="sc">:&gt;12}</span><span class="ss">  </span><span class="sc">{</span><span class="st">'E[ret] μ=6%'</span><span class="sc">:&gt;12}</span><span class="ss">"</span>)</span>
+<span id="cb15-73"><a href=""></a><span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span><span class="st">'─'</span><span class="op">*</span><span class="dv">44</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb15-74"><a href=""></a><span class="cf">for</span> margin <span class="kw">in</span> [<span class="dv">5</span>, <span class="dv">1</span>, <span class="dv">0</span>]:</span>
+<span id="cb15-75"><a href=""></a>    budget <span class="op">=</span> <span class="dv">100</span> <span class="op">-</span> pv_principal <span class="op">-</span> margin</span>
+<span id="cb15-76"><a href=""></a>    boost <span class="op">=</span> brentq(<span class="kw">lambda</span> b: total_option_value(b) <span class="op">-</span> budget, <span class="dv">0</span>, <span class="dv">200</span>)</span>
+<span id="cb15-77"><a href=""></a>    er4 <span class="op">=</span> expected_return_digital(boost, <span class="fl">0.04</span>)</span>
+<span id="cb15-78"><a href=""></a>    er6 <span class="op">=</span> expected_return_digital(boost, <span class="fl">0.06</span>)</span>
+<span id="cb15-79"><a href=""></a>    <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span>margin<span class="sc">:&gt;6.0f}</span><span class="ss">%  </span><span class="sc">{</span>boost<span class="sc">:&gt;5.0f}</span><span class="ss">%  </span><span class="sc">{</span>er4<span class="sc">:&gt;11.2%}</span><span class="ss">  </span><span class="sc">{</span>er6<span class="sc">:&gt;11.2%}</span><span class="ss">"</span>)</span>
+<span id="cb15-80"><a href=""></a></span>
+<span id="cb15-81"><a href=""></a><span class="co"># --- Current note for comparison ---</span></span>
+<span id="cb15-82"><a href=""></a>er4_curr <span class="op">=</span> expected_return_digital(<span class="dv">20</span>, <span class="fl">0.04</span>)</span>
+<span id="cb15-83"><a href=""></a>er6_curr <span class="op">=</span> expected_return_digital(<span class="dv">20</span>, <span class="fl">0.06</span>)</span>
+<span id="cb15-84"><a href=""></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Current note (20% boost, 5.1% margin):  </span><span class="sc">{</span>er4_curr<span class="sc">:&gt;11.2%}</span><span class="ss">  </span><span class="sc">{</span>er6_curr<span class="sc">:&gt;11.2%}</span><span class="ss">"</span>)</span>
+<span id="cb15-85"><a href=""></a><span class="bu">print</span>(<span class="ss">f"Risk-free benchmark:                     </span><span class="sc">{</span>(np.exp(r) <span class="op">-</span> <span class="dv">1</span>)<span class="sc">:&gt;11.2%}</span><span class="ss">  </span><span class="sc">{</span>(np.exp(r) <span class="op">-</span> <span class="dv">1</span>)<span class="sc">:&gt;11.2%}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>ALTERNATIVE 1: No digital, just ATM call (K = AR₀), participation α
+Cost of 100% participation = $7.85 per $100 notional
+
+   Margin       α   E[ret] μ=4%   E[ret] μ=6%
+  ────────────────────────────────────────────
+       5%     80%        2.16%        3.01%
+       1%    131%        3.45%        4.79%
+       0%    144%        3.77%        5.23%
+
+ALTERNATIVE 2: Digital + 5% participation, solve for boost level
+N(d₂) = 0.339 — risk-neutral prob of receiving the boost: 34%
+
+   Margin   Boost   E[ret] μ=4%   E[ret] μ=6%
+  ────────────────────────────────────────────
+       5%     20%        2.01%        2.51%
+       1%     34%        3.23%        3.99%
+       0%     37%        3.52%        4.35%
+
+Current note (20% boost, 5.1% margin):        1.98%        2.47%
+Risk-free benchmark:                           3.05%        3.05%</code></pre>
+</div>
+</div>
+
+</section>
+    </div>
+  <div class="quarto-auto-generated-content" style="display: none;">
+<div class="footer footer-default">
+
+</div>
+</div></div>
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script>
+  <script src="td_ppn_case_study_files/libs/revealjs/dist/reveal.js"></script>
+  <!-- reveal.js plugins -->
+  <script src="td_ppn_case_study_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.js"></script>
+  <script src="td_ppn_case_study_files/libs/revealjs/plugin/pdf-export/pdfexport.js"></script>
+  <script src="td_ppn_case_study_files/libs/revealjs/plugin/reveal-menu/menu.js"></script>
+  <script src="td_ppn_case_study_files/libs/revealjs/plugin/reveal-menu/quarto-menu.js"></script>
+  <script src="td_ppn_case_study_files/libs/revealjs/plugin/quarto-support/support.js"></script>
+  
+
+  <script src="td_ppn_case_study_files/libs/revealjs/plugin/notes/notes.js"></script>
+  <script src="td_ppn_case_study_files/libs/revealjs/plugin/search/search.js"></script>
+  <script src="td_ppn_case_study_files/libs/revealjs/plugin/zoom/zoom.js"></script>
+  <script src="td_ppn_case_study_files/libs/revealjs/plugin/math/math.js"></script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://revealjs.com/config/
+      Reveal.initialize({
+'controlsAuto': true,
+'previewLinksAuto': false,
+'pdfSeparateFragments': false,
+'autoAnimateEasing': "ease",
+'autoAnimateDuration': 1,
+'autoAnimateUnmatched': true,
+'jumpToSlide': true,
+'menu': {"side":"left","useTextContentForMissingTitles":true,"markers":false,"loadIcons":false,"custom":[{"title":"Tools","icon":"<i class=\"fas fa-gear\"></i>","content":"<ul class=\"slide-menu-items\">\n<li class=\"slide-tool-item active\" data-item=\"0\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.fullscreen(event)\"><kbd>f</kbd> Fullscreen</a></li>\n<li class=\"slide-tool-item\" data-item=\"1\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.speakerMode(event)\"><kbd>s</kbd> Speaker View</a></li>\n<li class=\"slide-tool-item\" data-item=\"2\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.overview(event)\"><kbd>o</kbd> Slide Overview</a></li>\n<li class=\"slide-tool-item\" data-item=\"3\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.togglePdfExport(event)\"><kbd>e</kbd> PDF Export Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"4\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.toggleScrollView(event)\"><kbd>r</kbd> Scroll View Mode</a></li>\n<li class=\"slide-tool-item\" data-item=\"5\"><a href=\"#\" onclick=\"RevealMenuToolHandlers.keyboardHelp(event)\"><kbd>?</kbd> Keyboard Help</a></li>\n</ul>"}],"openButton":true},
+'smaller': false,
+ 
+        // Display controls in the bottom right corner
+        controls: false,
+
+        // Help the user learn the controls by providing hints, for example by
+        // bouncing the down arrow when they first encounter a vertical slide
+        controlsTutorial: false,
+
+        // Determines where controls appear, "edges" or "bottom-right"
+        controlsLayout: 'edges',
+
+        // Visibility rule for backwards navigation arrows; "faded", "hidden"
+        // or "visible"
+        controlsBackArrows: 'faded',
+
+        // Display a presentation progress bar
+        progress: true,
+
+        // Display the page number of the current slide
+        slideNumber: 'c/t',
+
+        // 'all', 'print', or 'speaker'
+        showSlideNumber: 'all',
+
+        // Add the current slide number to the URL hash so that reloading the
+        // page/copying the URL will return you to the same slide
+        hash: true,
+
+        // Start with 1 for the hash rather than 0
+        hashOneBasedIndex: false,
+
+        // Flags if we should monitor the hash and change slides accordingly
+        respondToHashChanges: true,
+
+        // Push each slide change to the browser history
+        history: true,
+
+        // Enable keyboard shortcuts for navigation
+        keyboard: true,
+
+        // Enable the slide overview mode
+        overview: true,
+
+        // Disables the default reveal.js slide layout (scaling and centering)
+        // so that you can use custom CSS layout
+        disableLayout: false,
+
+        // Vertical centering of slides
+        center: false,
+
+        // Enables touch navigation on devices with touch input
+        touch: true,
+
+        // Loop the presentation
+        loop: false,
+
+        // Change the presentation direction to be RTL
+        rtl: false,
+
+        // see https://revealjs.com/vertical-slides/#navigation-mode
+        navigationMode: 'linear',
+
+        // Randomizes the order of slides each time the presentation loads
+        shuffle: false,
+
+        // Turns fragments on and off globally
+        fragments: true,
+
+        // Flags whether to include the current fragment in the URL,
+        // so that reloading brings you to the same fragment position
+        fragmentInURL: false,
+
+        // Flags if the presentation is running in an embedded mode,
+        // i.e. contained within a limited portion of the screen
+        embedded: false,
+
+        // Flags if we should show a help overlay when the questionmark
+        // key is pressed
+        help: true,
+
+        // Flags if it should be possible to pause the presentation (blackout)
+        pause: true,
+
+        // Flags if speaker notes should be visible to all viewers
+        showNotes: false,
+
+        // Global override for autoplaying embedded media (null/true/false)
+        autoPlayMedia: null,
+
+        // Global override for preloading lazy-loaded iframes (null/true/false)
+        preloadIframes: null,
+
+        // Number of milliseconds between automatically proceeding to the
+        // next slide, disabled when set to 0, this value can be overwritten
+        // by using a data-autoslide attribute on your slides
+        autoSlide: 0,
+
+        // Stop auto-sliding after user input
+        autoSlideStoppable: true,
+
+        // Use this method for navigation when auto-sliding
+        autoSlideMethod: null,
+
+        // Specify the average time in seconds that you think you will spend
+        // presenting each slide. This is used to show a pacing timer in the
+        // speaker view
+        defaultTiming: null,
+
+        // Enable slide navigation via mouse wheel
+        mouseWheel: false,
+
+        // The display mode that will be used to show slides
+        display: 'block',
+
+        // Hide cursor if inactive
+        hideInactiveCursor: true,
+
+        // Time before the cursor is hidden (in ms)
+        hideCursorTime: 5000,
+
+        // Opens links in an iframe preview overlay
+        previewLinks: false,
+
+        // Transition style (none/fade/slide/convex/concave/zoom)
+        transition: 'none',
+
+        // Transition speed (default/fast/slow)
+        transitionSpeed: 'default',
+
+        // Transition style for full page slide backgrounds
+        // (none/fade/slide/convex/concave/zoom)
+        backgroundTransition: 'none',
+
+        // Number of slides away from the current that are visible
+        viewDistance: 3,
+
+        // Number of slides away from the current that are visible on mobile
+        // devices. It is advisable to set this to a lower number than
+        // viewDistance in order to save resources.
+        mobileViewDistance: 2,
+
+        // The "normal" size of the presentation, aspect ratio will be preserved
+        // when the presentation is scaled to fit different resolutions. Can be
+        // specified using percentage units.
+        width: 1600,
+
+        height: 900,
+
+        // Factor of the display size that should remain empty around the content
+        margin: 4.0e-2,
+
+        math: {
+          mathjax: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js',
+          config: 'TeX-AMS_HTML-full',
+          tex2jax: {
+            inlineMath: [['\\(','\\)']],
+            displayMath: [['\\[','\\]']],
+            balanceBraces: true,
+            processEscapes: false,
+            processRefs: true,
+            processEnvironments: true,
+            preview: 'TeX',
+            skipTags: ['script','noscript','style','textarea','pre','code'],
+            ignoreClass: 'tex2jax_ignore',
+            processClass: 'tex2jax_process'
+          },
+        },
+
+        // reveal.js plugins
+        plugins: [QuartoLineHighlight, PdfExport, RevealMenu, QuartoSupport,
+
+          RevealMath,
+          RevealNotes,
+          RevealSearch,
+          RevealZoom
+        ]
+      });
+    </script>
+    <script id="quarto-html-after-body" type="application/javascript">
+      window.document.addEventListener("DOMContentLoaded", function (event) {
+        const tabsets =  window.document.querySelectorAll(".panel-tabset-tabby")
+        tabsets.forEach(function(tabset) {
+          const tabby = new Tabby('#' + tabset.id);
+        });
+        const isCodeAnnotation = (el) => {
+          for (const clz of el.classList) {
+            if (clz.startsWith('code-annotation-')) {                     
+              return true;
+            }
+          }
+          return false;
+        }
+        const onCopySuccess = function(e) {
+          // button target
+          const button = e.trigger;
+          // don't keep focus
+          button.blur();
+          // flash "checked"
+          button.classList.add('code-copy-button-checked');
+          var currentTitle = button.getAttribute("title");
+          button.setAttribute("title", "Copied!");
+          let tooltip;
+          if (window.bootstrap) {
+            button.setAttribute("data-bs-toggle", "tooltip");
+            button.setAttribute("data-bs-placement", "left");
+            button.setAttribute("data-bs-title", "Copied!");
+            tooltip = new bootstrap.Tooltip(button, 
+              { trigger: "manual", 
+                customClass: "code-copy-button-tooltip",
+                offset: [0, -8]});
+            tooltip.show();    
+          }
+          setTimeout(function() {
+            if (tooltip) {
+              tooltip.hide();
+              button.removeAttribute("data-bs-title");
+              button.removeAttribute("data-bs-toggle");
+              button.removeAttribute("data-bs-placement");
+            }
+            button.setAttribute("title", currentTitle);
+            button.classList.remove('code-copy-button-checked');
+          }, 1000);
+          // clear code selection
+          e.clearSelection();
+        }
+        const getTextToCopy = function(trigger) {
+          const outerScaffold = trigger.parentElement.cloneNode(true);
+          const codeEl = outerScaffold.querySelector('code');
+          for (const childEl of codeEl.children) {
+            if (isCodeAnnotation(childEl)) {
+              childEl.remove();
+            }
+          }
+          return codeEl.innerText;
+        }
+        const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+          text: getTextToCopy
+        });
+        clipboard.on('success', onCopySuccess);
+        if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+          const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+            text: getTextToCopy,
+            container: window.document.getElementById('quarto-embedded-source-code-modal')
+          });
+          clipboardModal.on('success', onCopySuccess);
+        }
+          var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+          var mailtoRegex = new RegExp(/^mailto:/);
+            var filterRegex = new RegExp('/' + window.location.host + '/');
+          var isInternal = (href) => {
+              return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+          }
+          // Inspect non-navigation links and adorn them if external
+         var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+          for (var i=0; i<links.length; i++) {
+            const link = links[i];
+            if (!isInternal(link.href)) {
+              // undo the damage that might have been done by quarto-nav.js in the case of
+              // links that we want to consider external
+              if (link.dataset.originalHref !== undefined) {
+                link.href = link.dataset.originalHref;
+              }
+            }
+          }
+        function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+          const config = {
+            allowHTML: true,
+            maxWidth: 500,
+            delay: 100,
+            arrow: false,
+            appendTo: function(el) {
+                return el.closest('section.slide') || el.parentElement;
+            },
+            interactive: true,
+            interactiveBorder: 10,
+            theme: 'light-border',
+            placement: 'bottom-start',
+          };
+          if (contentFn) {
+            config.content = contentFn;
+          }
+          if (onTriggerFn) {
+            config.onTrigger = onTriggerFn;
+          }
+          if (onUntriggerFn) {
+            config.onUntrigger = onUntriggerFn;
+          }
+            config['offset'] = [0,0];
+            config['maxWidth'] = 700;
+          window.tippy(el, config); 
+        }
+        const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+        for (var i=0; i<noterefs.length; i++) {
+          const ref = noterefs[i];
+          tippyHover(ref, function() {
+            // use id or data attribute instead here
+            let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+            try { href = new URL(href).hash; } catch {}
+            const id = href.replace(/^#\/?/, "");
+            const note = window.document.getElementById(id);
+            if (note) {
+              return note.innerHTML;
+            } else {
+              return "";
+            }
+          });
+        }
+        const findCites = (el) => {
+          const parentEl = el.parentElement;
+          if (parentEl) {
+            const cites = parentEl.dataset.cites;
+            if (cites) {
+              return {
+                el,
+                cites: cites.split(' ')
+              };
+            } else {
+              return findCites(el.parentElement)
+            }
+          } else {
+            return undefined;
+          }
+        };
+        var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+        for (var i=0; i<bibliorefs.length; i++) {
+          const ref = bibliorefs[i];
+          const citeInfo = findCites(ref);
+          if (citeInfo) {
+            tippyHover(citeInfo.el, function() {
+              var popup = window.document.createElement('div');
+              citeInfo.cites.forEach(function(cite) {
+                var citeDiv = window.document.createElement('div');
+                citeDiv.classList.add('hanging-indent');
+                citeDiv.classList.add('csl-entry');
+                var biblioDiv = window.document.getElementById('ref-' + cite);
+                if (biblioDiv) {
+                  citeDiv.innerHTML = biblioDiv.innerHTML;
+                }
+                popup.appendChild(citeDiv);
+              });
+              return popup.innerHTML;
+            });
+          }
+        }
+      });
+      </script>
+    
+
+</body></html>

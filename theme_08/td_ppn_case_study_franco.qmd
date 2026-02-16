@@ -1,0 +1,669 @@
+---
+title: "Évaluation d'un billet à capital protégé"
+subtitle: "Billets de croissance à rendement rehaussé liés à un indice d'actions de sociétés canadiennes diversifiées à grande capitalisation RA 265 TD, Série 212"
+author: "FINA60232 — Principes d'évaluation des produits dérivés"
+date: "Hiver 2026"
+format:
+  revealjs:
+    theme: simple
+    width: 1600
+    height: 900
+    margin: 0.04
+    center: false
+    transition: none
+    slide-number: true
+    code-fold: true
+    code-tools: false
+    highlight-style: github
+    fig-align: center
+    mathfont: STIX Two Math
+    html-math-method: mathjax
+jupyter: python3
+execute:
+  echo: true
+  warning: false
+---
+
+## Plan
+
+1. Le billet structuré et son profil de gains
+2. Décomposition en instruments standards
+3. L'indice RA : rendement total avec un prélèvement
+4. Prix à terme prépayé et le Black-Scholes généralisé
+5. Estimation de la volatilité
+   - Volatilité implicite (données d'options de la Bourse de Montréal)
+   - Variance historique des constituants + prime de risque de variance
+6. Résultats d'évaluation et sensibilité
+7. Approximation par rendement en dividendes continu
+8. Rendement espéré pour l'investisseur
+
+::: {.notes}
+Étude de cas basée sur un vrai billet structuré de la Banque TD (Série 212), évalué à l'aide des outils du cours.
+:::
+
+---
+
+## Le billet en un coup d'œil
+
+:::: {.columns}
+
+::: {.column width="55%"}
+
+| Caractéristique | Détail |
+|---|---|
+| Émetteur | Banque TD |
+| Capital | 100\$ (protégé à l'échéance) |
+| Échéance | 4 ans (29 janvier 2030) |
+| Sous-jacent | Indice TD gr. cap. can. div. 265 RA |
+| Niveau initial de l'indice | $\text{RA}_0 = 5\,468{,}46$ |
+| Rendement majoré | 20% si $R_{\text{RA}} \geq 0$ |
+| Taux de participation | 5% pour $R_{\text{RA}}$ au-delà de 20% |
+| Commission de vente | 2% |
+
+:::
+
+::: {.column width="45%"}
+
+**Ce que l'investisseur reçoit à l'échéance :**
+
+$$100\$ + \text{Rendement variable (RV)}$$
+
+où
+
+$$\text{RV} = \begin{cases} 0 & \text{si } R_{\text{RA}} < 0 \\ 20\$ & \text{si } 0 \leq R_{\text{RA}} \leq 20\% \\ 20\$ + 5\% \times (R_{\text{RA}} - 20\%) \times 100\$ & \text{si } R_{\text{RA}} > 20\% \end{cases}$$
+
+**Question clé :** Quelle est la juste valeur de ce billet ?
+
+:::
+
+::::
+
+---
+
+## Diagramme de gains
+
+```{python}
+#| fig-width: 14
+#| fig-height: 5
+import numpy as np
+import matplotlib.pyplot as plt
+
+R = np.linspace(-0.5, 0.8, 1000)
+payoff = np.where(R < 0, 100,
+         np.where(R <= 0.2, 120,
+         120 + 0.05 * (R - 0.2) * 100))
+
+fig, ax = plt.subplots(figsize=(14, 5))
+ax.plot(R * 100, payoff, 'b-', linewidth=2.5, label='Gains du billet')
+ax.axhline(100, color='gray', linestyle='--', alpha=0.5, label='Capital')
+ax.axvline(0, color='gray', linestyle=':', alpha=0.4)
+ax.axvline(20, color='gray', linestyle=':', alpha=0.4)
+ax.set_xlabel("Rendement de l'indice RA (%)", fontsize=13)
+ax.set_ylabel('Gains ($)', fontsize=13)
+ax.set_title("Gains à l'échéance (par 100$ investis)", fontsize=14)
+ax.legend(fontsize=12)
+ax.set_xlim(-50, 80)
+ax.set_ylim(80, 130)
+ax.annotate('Protection\ndu capital', xy=(-25, 100), fontsize=11,
+            ha='center', color='darkred')
+ax.annotate('Rendement\nmajoré : 20$', xy=(10, 120), fontsize=11,
+            ha='center', va='bottom', color='darkblue')
+ax.annotate('Participation 5%\nau-delà de 20%', xy=(55, 122), fontsize=11,
+            ha='center', color='darkgreen')
+ax.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
+```
+
+---
+
+## Décomposition du rendement variable
+
+Le rendement variable se décompose en deux options :
+
+. . .
+
+**1. Option d'achat numérique (binaire)** — paie 20\$ si $\text{RA}_T \geq \text{RA}_0$ :
+
+$$20\$ \times \mathbf{1}_{\{R_{\text{RA}} \geq 0\}} = 20\$ \times \mathbf{1}_{\{\text{RA}_T \geq \text{RA}_0\}}$$
+
+. . .
+
+**2. Option d'achat standard** — participation de 5% au-delà du rendement de 20% :
+
+$$5\% \times \max(R_{\text{RA}} - 20\%,\; 0) \times 100\$ = \frac{100\$}{\text{RA}_0} \times 5\% \times \max(\text{RA}_T - 1{,}2 \times \text{RA}_0,\; 0)$$
+
+Un call de prix d'exercice $K = 1{,}2 \times \text{RA}_0 = 6\,562{,}15$, pondéré par $5\% \times 100\$ / \text{RA}_0$.
+
+. . .
+
+$$\boxed{\text{Juste valeur} = \underbrace{e^{-rT} \times 100\$}_{\text{obligation zéro-coupon}} + \underbrace{20\$ \times e^{-rT} \times N(d_2)}_{\text{call numérique}} + \underbrace{\frac{5}{\text{RA}_0} \times C(\text{RA}_0,\, 1{,}2 \times \text{RA}_0)}_{\text{call standard pondéré}}}$$
+
+---
+
+## L'indice RA : rendement total avec un prélèvement
+
+Le sous-jacent n'est **pas** un indice boursier standard.
+
+- L'indice de **rendement total (RT)** réinvestit tous les dividendes
+- L'indice de **rendement ajusté (RA)** soustrait un prélèvement fixe de **265 points d'indice par an**
+- Ce prélèvement (~4,85% p.a.) permet à l'émetteur d'afficher un «rendement majoré de 20%» — mais la majoration ne compense même pas le prélèvement (la marge de l'émetteur est toujours de 5%)
+
+. . .
+
+$$\text{RA}_t = \text{RT}_t - 265 \times t$$
+
+**Implications pour l'évaluation :**
+
+- Le prélèvement est un **flux de trésorerie connu et déterministe** — comme un coupon continu prélevé sur l'indice
+- Il n'est **pas** proportionnel au niveau de l'indice (arithmétique, pas géométrique)
+- Il faut un cadre d'évaluation qui gère proprement les flux connus
+- **Idée clé :** le cadre du prix à terme prépayé (Thème 1) traite ce cas exactement
+
+---
+
+## Prix à terme prépayé (rappel)
+
+Le **prix à terme prépayé** $F^P_{0,T}(S)$ est le prix aujourd'hui pour recevoir l'actif au temps $T$, sans flux intermédiaires :
+
+$$F^P_{0,T}(S) = S_0 - \text{VA}(\text{flux non reçus par le détenteur du dérivé})$$
+
+. . .
+
+| Sous-jacent | Prix à terme prépayé |
+|---|---|
+| Action sans dividende | $F^P = S_0$ |
+| Dividendes discrets $D_{t_i}$ | $F^P = S_0 - \sum_i D_{t_i}\, e^{-r t_i}$ |
+| Rendement continu $\delta$ | $F^P = S_0\, e^{-\delta T}$ |
+| **Indice RA (prélèvement de 265 pts/an)** | **$F^P = \text{RA}_0 - \text{VA(prélèvement)}$** |
+
+Le prélèvement de 265 points par an est une **annuité continue** :
+
+$$\text{VA(prélèvement)} = \int_0^T 265\, e^{-rt}\, dt = 265 \times \frac{1 - e^{-rT}}{r}$$
+
+---
+
+## Calcul de $F^P$ pour l'indice RA
+
+Avec $\text{RA}_0 = 5\,468{,}46$, $T = 4$ ans, $r = 3\%$ :
+
+```{python}
+#| echo: true
+import numpy as np
+
+AR_0 = 5468.46
+T, r, drag = 4.0, 0.03, 265.0
+
+PV_drag = drag * (1 - np.exp(-r * T)) / r
+FP_AR = AR_0 - PV_drag
+
+print(f"VA(prélèvement) = 265 × (1 - e^(-0.03×4)) / 0.03 = {PV_drag:.2f}")
+print(f"F^P(RA)         = {AR_0:.2f} - {PV_drag:.2f} = {FP_AR:.2f}")
+print(f"Ratio           = F^P / RA_0 = {FP_AR/AR_0:.4f}  ({(1 - FP_AR/AR_0)*100:.1f}% de décote)")
+```
+
+. . .
+
+Le prélèvement détruit **18,3% de la valeur de l'indice** en termes de valeur actualisée.
+
+Même si l'indice RT reste stable, l'indice RA aura *baissé* d'environ 1 000 points à l'échéance. C'est pourquoi le «rendement majoré de 20%» n'est pas aussi généreux qu'il n'y paraît.
+
+---
+
+## La formule de Black-Scholes généralisée
+
+Du Thème 5, le **Black-Scholes généralisé** évalue un call européen à l'aide des prix à terme prépayés :
+
+$$C = F^P_{0,T}(S) \cdot N(d_1) - F^P_{0,T}(K) \cdot N(d_2)$$
+
+$$d_1 = \frac{\ln\!\left(\frac{F^P_{0,T}(S)}{F^P_{0,T}(K)}\right) + \tfrac{1}{2}\sigma^2 T}{\sigma\sqrt{T}}, \qquad d_2 = d_1 - \sigma\sqrt{T}$$
+
+. . .
+
+Pour notre billet ($F^P_{0,T}(K) = K \cdot e^{-rT}$ puisque le prix d'exercice est un montant fixe) :
+
+- **Call numérique** (paie 20\$ si $\text{RA}_T \geq \text{RA}_0$) :
+$$\text{Numérique} = 20\$ \times e^{-rT} \times N(d_2) \quad \text{avec } K = \text{RA}_0$$
+
+- **Call standard** (participation de 5% au-delà de 20%) :
+$$\text{Standard} = \frac{5}{\text{RA}_0} \times \Big[F^P(\text{RA}) \cdot N(d_1) - F^P(1{,}2 \times \text{RA}_0) \cdot N(d_2)\Big]$$
+
+---
+
+## Volatilité : de quoi avons-nous besoin ?
+
+Pour appliquer Black-Scholes, il nous faut $\sigma$. **Défi :** l'indice RA a un historique court.
+
+**Deux approches :**
+
+:::: {.columns}
+
+::: {.column width="50%"}
+### 1. Volatilité implicite du marché
+- Utiliser les options sur **XIU** (iShares S&P/TSX 60 ETF)
+- Le TSX 60 a une composition très similaire à l'indice de 20 titres
+- Extraire la vol implicite ATM à la plus longue échéance disponible
+:::
+
+::: {.column width="50%"}
+### 2. Variance historique + prime de risque
+- Reconstituer le portefeuille de 20 titres à partir des données des constituants
+- Calculer la variance réalisée sur 5 ans
+- Ajouter une **prime de risque de variance** (PRV = 0,015)
+- Prendre la racine carrée
+:::
+
+::::
+
+. . .
+
+**Constituants de l'indice** (20 grandes capitalisations canadiennes) :
+Banques (5) : BMO, BNS, CM, RY, TD  |  Énergie (5) : CNQ, ENB, TRP, PPL, TOU
+Télécoms (3) : BCE, RCI.B, T  |  Assurances (2) : GWO, SLF  |  Mines (2) : AEM, ABX
+Services publics (1) : EMA  |  Consommation (1) : QSR  |  Technologie (1) : SHOP
+
+---
+
+## Approche 1 : Volatilité implicite du marché
+
+**Source de données :** Bourse de Montréal (options sur XIU.TO)
+
+**Défis rencontrés :**
+
+- `yfinance` ne retourne pas les chaînes d'options pour les sous-jacents canadiens
+- TMX Argent, Barchart utilisent du contenu rendu en JavaScript (non extractible)
+- **Solution :** Extraction du HTML brut du site de la Bourse de Montréal (données d'options intégrées en JSON)
+
+. . .
+
+**Données obtenues :** 1 220 enregistrements d'options sur 16 dates d'échéance (février 2026 à mars 2029).
+Volatilités implicites extraites par la **méthode de Brent** (inversion BS européenne).
+
+. . .
+
+**Structure par terme de la volatilité implicite ATM :**
+
+| Échéance | ~10 mois | ~1,1 an | ~2,1 ans | ~3,1 ans |
+|---|---|---|---|---|
+| Vol impl. ATM | 13,6% | 13,4% | 14,7% | **15,5%** |
+
+Pente ascendante, cohérente avec les marchés d'actions typiques.
+**Retenu : $\sigma \approx 16\%$** (vol ATM à la plus longue échéance ≈ 15,5%, extrapolée à $T = 4$ ans).
+
+---
+
+## Approche 2 : Variance historique + PRV
+
+Télécharger 5 ans de prix quotidiens ajustés pour les 20 constituants, pondérer par les **parts d'indice** :
+
+```{python}
+#| echo: true
+#| output: false
+import yfinance as yf
+import pandas as pd
+
+constituents = {
+    'AEM.TO': 1.068889, 'BMO.TO': 1.618257, 'BNS.TO': 2.975524,
+    'ABX.TO': 4.476445, 'BCE.TO': 8.96346,  'CM.TO':  2.3997,
+    'CNQ.TO': 6.104161, 'EMA.TO': 4.413341, 'ENB.TO': 4.644166,
+    'GWO.TO': 4.69007,  'PPL.TO': 5.61646,  'QSR.TO': 3.22517,
+    'RCI-B.TO': 5.980347, 'RY.TO': 1.307227, 'SHOP.TO': 1.585145,
+    'SLF.TO': 3.516059, 'TRP.TO': 4.069168, 'T.TO':  16.415244,
+    'TD.TO':  2.34413,  'TOU.TO': 4.911564,
+}
+tickers = list(constituents.keys())
+shares = np.array(list(constituents.values()))
+
+data = yf.download(tickers, period='5y', auto_adjust=True)
+prices = data['Close'][tickers].ffill()
+portfolio = (prices * shares).sum(axis=1)
+log_ret = np.log(portfolio / portfolio.shift(1)).dropna()
+```
+
+```{python}
+daily_var = log_ret.var()
+annual_var = daily_var * 252
+vrp = 0.015
+total_var = annual_var + vrp
+
+print(f"Variance réalisée annualisée :   σ² = {annual_var:.4f}  →  σ = {np.sqrt(annual_var)*100:.2f}%")
+print(f"Prime de risque de variance :   +PRV = {vrp:.4f}")
+print(f"Variance totale :          σ² + PRV  = {total_var:.4f}  →  σ = {np.sqrt(total_var)*100:.2f}%")
+```
+
+---
+
+## Robustesse selon la fenêtre d'estimation
+
+```{python}
+#| fig-width: 14
+#| fig-height: 4.5
+windows = [63, 126, 252, 504, 756, 1008, len(log_ret)]
+labels = ['3m', '6m', '1a', '2a', '3a', '4a', '5a']
+vars_hist = []
+for w in windows:
+    v = log_ret.iloc[-w:].var() * 252
+    vars_hist.append(v)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 4.5))
+
+ax1.bar(labels, [v*100 for v in vars_hist], color='steelblue', alpha=0.7, label='σ² historique')
+ax1.bar(labels, [1.5]*len(labels), bottom=[v*100 for v in vars_hist],
+        color='coral', alpha=0.7, label='PRV (+1,5%)')
+ax1.set_ylabel('Variance annualisée (%)', fontsize=12)
+ax1.set_xlabel("Fenêtre d'estimation", fontsize=12)
+ax1.set_title('Variance réalisée par fenêtre', fontsize=13)
+ax1.legend(fontsize=11)
+ax1.grid(True, alpha=0.3, axis='y')
+
+vols_total = [np.sqrt(v + 0.015)*100 for v in vars_hist]
+ax2.bar(labels, vols_total, color='darkgreen', alpha=0.7)
+ax2.axhline(16.0, color='red', linestyle='--', linewidth=1.5, label='Vol implicite (16,0%)')
+ax2.set_ylabel('Volatilité (%)', fontsize=12)
+ax2.set_xlabel("Fenêtre d'estimation", fontsize=12)
+ax2.set_title('σ = √(σ² + PRV) vs. vol implicite', fontsize=13)
+ax2.legend(fontsize=11)
+ax2.grid(True, alpha=0.3, axis='y')
+ax2.set_ylim(0, 22)
+
+plt.tight_layout()
+plt.show()
+```
+
+Les deux approches donnent des **estimations cohérentes** : $\sigma \approx 16\%$.
+
+---
+
+## Évaluation du billet
+
+```{python}
+#| echo: true
+from scipy.stats import norm
+
+sigma = 0.1623  # Historique + PRV
+AR_0, T, r, drag = 5468.46, 4.0, 0.03, 265.0
+PV_drag = drag * (1 - np.exp(-r * T)) / r
+FP_AR = AR_0 - PV_drag
+pv_principal = 100 * np.exp(-r * T)
+
+# Call numérique : 20$ si RA_T >= RA_0
+K1 = AR_0
+FP_K1 = K1 * np.exp(-r * T)
+d1_dig = (np.log(FP_AR / FP_K1) + 0.5 * sigma**2 * T) / (sigma * np.sqrt(T))
+d2_dig = d1_dig - sigma * np.sqrt(T)
+digital = 20 * np.exp(-r * T) * norm.cdf(d2_dig)
+
+# Call standard : participation 5%, exercice = 1.2 * RA_0
+K2 = 1.2 * AR_0
+FP_K2 = K2 * np.exp(-r * T)
+d1_van = (np.log(FP_AR / FP_K2) + 0.5 * sigma**2 * T) / (sigma * np.sqrt(T))
+d2_van = d1_van - sigma * np.sqrt(T)
+call_val = FP_AR * norm.cdf(d1_van) - FP_K2 * norm.cdf(d2_van)
+vanilla = 0.05 * (call_val / AR_0) * 100
+
+fair_value = pv_principal + digital + vanilla
+
+print(f"VA du capital (obligation zéro-coupon) :  {pv_principal:.2f}$")
+print(f"Call numérique (20$ × 1_{{RA≥RA₀}}) :       {digital:.2f}$")
+print(f"  d₂ = {d2_dig:.3f},  N(d₂) = {norm.cdf(d2_dig):.3f}  (prob. risque-neutre de rendement positif)")
+print(f"Call standard (5% au-delà de 20%) :       {vanilla:.2f}$")
+print(f"{'─'*47}")
+print(f"Juste valeur :                            {fair_value:.2f}$")
+print(f"Marge de l'émetteur :                     {100 - fair_value:.2f}$  ({100 - fair_value:.1f}%)")
+```
+
+---
+
+## Sensibilité à la volatilité
+
+```{python}
+#| fig-width: 14
+#| fig-height: 4.5
+sigmas = np.linspace(0.10, 0.30, 100)
+fair_values = []
+digitals = []
+vanillas = []
+
+for s in sigmas:
+    d2 = (np.log(FP_AR / FP_K1) + 0.5 * s**2 * T) / (s * np.sqrt(T)) - s * np.sqrt(T)
+    dig = 20 * np.exp(-r * T) * norm.cdf(d2)
+    d1v = (np.log(FP_AR / FP_K2) + 0.5 * s**2 * T) / (s * np.sqrt(T))
+    d2v = d1v - s * np.sqrt(T)
+    cv = FP_AR * norm.cdf(d1v) - FP_K2 * norm.cdf(d2v)
+    van = 0.05 * (cv / AR_0) * 100
+    fair_values.append(pv_principal + dig + van)
+    digitals.append(dig)
+    vanillas.append(van)
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 4.5))
+
+ax1.plot(sigmas*100, fair_values, 'b-', linewidth=2)
+ax1.axvline(16.23, color='green', linestyle='--', alpha=0.7, label='Hist+PRV (16,2%)')
+ax1.axvline(16.0, color='red', linestyle='--', alpha=0.7, label='Implicite (16,0%)')
+ax1.set_xlabel('Volatilité (%)', fontsize=12)
+ax1.set_ylabel('Juste valeur ($)', fontsize=12)
+ax1.set_title('Juste valeur du billet vs. volatilité', fontsize=13)
+ax1.legend(fontsize=11)
+ax1.grid(True, alpha=0.3)
+
+ax2.plot(sigmas*100, digitals, 'b-', linewidth=2, label='Call numérique')
+ax2.plot(sigmas*100, [v * 10 for v in vanillas], 'r-', linewidth=2, label='Call standard (×10)')
+ax2.axvline(16.23, color='green', linestyle='--', alpha=0.5)
+ax2.set_xlabel('Volatilité (%)', fontsize=12)
+ax2.set_ylabel('Valeur ($)', fontsize=12)
+ax2.set_title('Composantes optionnelles vs. volatilité', fontsize=13)
+ax2.legend(fontsize=11)
+ax2.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+La juste valeur est **remarquablement insensible à la volatilité** — elle ne varie qu'entre 94\$ et 96\$ sur une large plage.
+
+---
+
+## Approximation par rendement en dividendes continu
+
+Approximer le prélèvement par un **rendement proportionnel continu** : $\delta \approx 265 / \text{RA}_0 = 4{,}85\%$.
+
+Alors $F^P_{\text{approx}} = \text{RA}_0 \times e^{-\delta T}$ et on utilise le BS standard avec rendement continu.
+
+```{python}
+#| echo: true
+delta = drag / AR_0
+FP_approx = AR_0 * np.exp(-delta * T)
+
+d2_approx = (np.log(AR_0 / AR_0) + (r - delta - 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+digital_approx = 20 * np.exp(-r * T) * norm.cdf(d2_approx)
+
+d1v_a = (np.log(AR_0 / (1.2*AR_0)) + (r - delta + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+d2v_a = d1v_a - sigma * np.sqrt(T)
+cv_a = AR_0*np.exp(-delta*T)*norm.cdf(d1v_a) - 1.2*AR_0*np.exp(-r*T)*norm.cdf(d2v_a)
+vanilla_approx = 0.05 * (cv_a / AR_0) * 100
+
+fv_approx = pv_principal + digital_approx + vanilla_approx
+
+print(f"δ = {delta:.4f} ({delta*100:.2f}%)")
+print(f"F^P (rendement continu) : {FP_approx:.2f}   vs.   F^P (exact) : {FP_AR:.2f}   (écart : {FP_approx - FP_AR:.2f})")
+print(f"Juste valeur (approx.) :  {fv_approx:.2f}$   vs.   Juste valeur (exacte) : {fair_value:.2f}$   (écart : {fv_approx - fair_value:.2f}$)")
+```
+
+. . .
+
+Seulement **0,17\$ d'écart** sur un billet de 100\$. L'approximation par rendement continu sous-estime légèrement le prélèvement (proportionnel au niveau, alors que le vrai prélèvement est fixe à 265 points).
+
+---
+
+## Rendement espéré pour l'investisseur
+
+On suppose que l'**indice RT** (avant prélèvement) a un rendement espéré $\mu_{\text{RT}}$. Avec $\delta = 265/\text{RA}_0 = 4{,}85\%$ :
+
+$$\mu_{\text{RA}} = \mu_{\text{RT}} - \delta$$
+
+Le gain espéré utilise les **formules de BS avec $\mu_{\text{RA}}$ remplaçant $r$** (mesure physique $\mathbb{P}$) :
+
+$$\mathbb{P}(\text{RA}_T \geq K) = N\!\left(\frac{(\mu_{\text{RA}} - \tfrac{1}{2}\sigma^2)T}{\sigma\sqrt{T}}\right), \qquad \mathbb{E}^{\mathbb{P}}[\max(\text{RA}_T - K, 0)] = \text{RA}_0\, e^{\mu_{\text{RA}} T}\, N(d_1^{\mathbb{P}}) - K\, N(d_2^{\mathbb{P}})$$
+
+```{python}
+#| echo: true
+mu_TRs = [0.02, 0.04, 0.06]
+sigma_P = 0.1623
+delta_drag = drag / AR_0
+
+print(f"Prélèvement en rendement continu : δ = {delta_drag*100:.2f}%\n")
+print(f"{'μ_RT':>5}  {'μ_RA':>7}  {'P(R≥0)':>7}  {'E[num]':>7}  {'E[std]':>7}  {'E[gains]':>9}  {'E[rdt ann]':>10}")
+print("─" * 68)
+
+for mu_TR in mu_TRs:
+    mu_AR = mu_TR - delta_drag
+    d2_P = (mu_AR - 0.5 * sigma_P**2) * T / (sigma_P * np.sqrt(T))
+    prob_positive = norm.cdf(d2_P)
+    E_digital = 20 * prob_positive
+
+    K_v = 1.2 * AR_0
+    d1_P = (np.log(AR_0 / K_v) + (mu_AR + 0.5 * sigma_P**2) * T) / (sigma_P * np.sqrt(T))
+    d2_Pv = d1_P - sigma_P * np.sqrt(T)
+    E_call = AR_0 * np.exp(mu_AR * T) * norm.cdf(d1_P) - K_v * norm.cdf(d2_Pv)
+    E_vanilla = 0.05 * (E_call / AR_0) * 100
+
+    E_payoff = 100 + E_digital + E_vanilla
+    ann_ret = (E_payoff / 100) ** (1/T) - 1
+    print(f"{mu_TR:>5.0%}  {mu_AR:>+7.2%}  {prob_positive:>6.1%}  "
+          f"${E_digital:>6.2f}  ${E_vanilla:>6.2f}  ${E_payoff:>8.2f}  {ann_ret:>9.2%}")
+
+print(f"\nRendement sans risque : 100$ à r = 3% → {100*np.exp(r*T):.2f}$ (3,05% p.a.)")
+```
+
+Le prélèvement ($\delta = 4{,}85\%$) dépasse les scénarios de faibles rendements, poussant $\mu_{\text{RA}}$ en **territoire négatif**.
+
+---
+
+## Résumé des résultats
+
+:::: {.columns}
+
+::: {.column width="55%"}
+
+| | Hist + PRV | Implicite | Rdt continu |
+|---|---|---|---|
+| $\sigma$ | 16,23% | 16,00% | 16,23% |
+| VA du capital | 88,69\$ | 88,69\$ | 88,69\$ |
+| Call numérique | 6,02\$ | 6,01\$ | 6,18\$ |
+| Call standard | 0,18\$ | 0,17\$ | 0,18\$ |
+| **Juste valeur** | **94,89\$** | **94,87\$** | **95,06\$** |
+| **Marge émetteur** | **5,1%** | **5,1%** | **4,9%** |
+
+:::
+
+::: {.column width="45%"}
+
+**Points clés :**
+
+1. Le prélèvement de 265 pts détruit 18% de la valeur de l'indice — le «rendement majoré» compense essentiellement cela
+2. Prob. risque-neutre de rendement positif : seulement **34%**
+3. Marge de l'émetteur ~**5%**, dont 2% de commission de vente
+4. Résultat **robuste** à l'estimation de vol et à l'approximation par rendement continu
+5. Le cadre du prix à terme prépayé gère proprement le prélèvement non proportionnel
+
+:::
+
+::::
+
+::: {.callout-important}
+## Mise en garde
+Cette analyse ignore le risque de crédit de TD. La garantie du capital n'est valable que dans la mesure où TD peut payer en 2030.
+:::
+
+---
+
+## Et si le billet était conçu différemment ?
+
+```{python}
+#| echo: true
+from scipy.optimize import brentq
+
+sigma = 0.1623
+AR_0, T, r, drag = 5468.46, 4.0, 0.03, 265.0
+PV_drag = drag * (1 - np.exp(-r * T)) / r
+FP_AR = AR_0 - PV_drag
+pv_principal = 100 * np.exp(-r * T)
+delta_drag = drag / AR_0
+
+def expected_return_atm_call(alpha, mu_TR):
+    """Rendement annualisé espéré pour un billet avec participation alpha dans un call ATM."""
+    mu_AR = mu_TR - delta_drag
+    K = AR_0
+    d1_P = (np.log(AR_0 / K) + (mu_AR + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+    d2_P = d1_P - sigma * np.sqrt(T)
+    E_call = AR_0 * np.exp(mu_AR * T) * norm.cdf(d1_P) - K * norm.cdf(d2_P)
+    E_payoff = 100 + alpha * (E_call / AR_0) * 100
+    return (E_payoff / 100) ** (1/T) - 1
+
+def expected_return_digital(boost, mu_TR):
+    """Rendement annualisé espéré pour un billet numérique($boost) + 5% standard."""
+    mu_AR = mu_TR - delta_drag
+    # Numérique
+    d2_P = (mu_AR - 0.5 * sigma**2) * T / (sigma * np.sqrt(T))
+    E_dig = boost * norm.cdf(d2_P)
+    # Standard
+    K_v = (1 + boost / 100) * AR_0
+    d1_P = (np.log(AR_0 / K_v) + (mu_AR + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+    d2_Pv = d1_P - sigma * np.sqrt(T)
+    E_call = AR_0 * np.exp(mu_AR * T) * norm.cdf(d1_P) - K_v * norm.cdf(d2_Pv)
+    E_van = 0.05 * (E_call / AR_0) * 100
+    E_payoff = 100 + E_dig + E_van
+    return (E_payoff / 100) ** (1/T) - 1
+
+# --- Alternative 1 : Call ATM simple, sans numérique ---
+K_atm = AR_0
+FP_K_atm = K_atm * np.exp(-r * T)
+d1_atm = (np.log(FP_AR / FP_K_atm) + 0.5 * sigma**2 * T) / (sigma * np.sqrt(T))
+d2_atm = d1_atm - sigma * np.sqrt(T)
+C_atm = FP_AR * norm.cdf(d1_atm) - FP_K_atm * norm.cdf(d2_atm)
+cost_100pct = C_atm / AR_0 * 100
+
+print("ALTERNATIVE 1 : Pas de numérique, juste un call ATM (K = RA₀), participation α")
+print(f"Coût de 100% de participation = {cost_100pct:.2f}$ par 100$ de nominal\n")
+print(f"  {'Marge':>7}  {'α':>6}  {'E[rdt] μ=4%':>12}  {'E[rdt] μ=6%':>12}")
+print(f"  {'─'*44}")
+for margin in [5, 1, 0]:
+    budget = 100 - pv_principal - margin
+    alpha = budget / cost_100pct
+    er4 = expected_return_atm_call(alpha, 0.04)
+    er6 = expected_return_atm_call(alpha, 0.06)
+    print(f"  {margin:>6.0f}%  {alpha*100:>5.0f}%  {er4:>11.2%}  {er6:>11.2%}")
+
+# --- Alternative 2 : Garder la structure numérique+standard, résoudre pour la majoration ---
+FP_K1 = AR_0 * np.exp(-r * T)
+d1_d = (np.log(FP_AR / FP_K1) + 0.5 * sigma**2 * T) / (sigma * np.sqrt(T))
+d2_d = d1_d - sigma * np.sqrt(T)
+Nd2 = norm.cdf(d2_d)
+
+def total_option_value(boost):
+    digital = boost * np.exp(-r * T) * Nd2
+    K_van = (1 + boost / 100) * AR_0
+    FP_Kv = K_van * np.exp(-r * T)
+    d1v = (np.log(FP_AR / FP_Kv) + 0.5 * sigma**2 * T) / (sigma * np.sqrt(T))
+    d2v = d1v - sigma * np.sqrt(T)
+    cv = FP_AR * norm.cdf(d1v) - FP_Kv * norm.cdf(d2v)
+    vanilla = 0.05 * (cv / AR_0) * 100
+    return digital + vanilla
+
+print(f"\nALTERNATIVE 2 : Numérique + participation 5%, résoudre pour le niveau de majoration")
+print(f"N(d₂) = {Nd2:.3f} — prob. risque-neutre de recevoir la majoration : {Nd2:.0%}\n")
+print(f"  {'Marge':>7}  {'Major.':>6}  {'E[rdt] μ=4%':>12}  {'E[rdt] μ=6%':>12}")
+print(f"  {'─'*44}")
+for margin in [5, 1, 0]:
+    budget = 100 - pv_principal - margin
+    boost = brentq(lambda b: total_option_value(b) - budget, 0, 200)
+    er4 = expected_return_digital(boost, 0.04)
+    er6 = expected_return_digital(boost, 0.06)
+    print(f"  {margin:>6.0f}%  {boost:>5.0f}%  {er4:>11.2%}  {er6:>11.2%}")
+
+# --- Billet actuel pour comparaison ---
+er4_curr = expected_return_digital(20, 0.04)
+er6_curr = expected_return_digital(20, 0.06)
+print(f"\nBillet actuel (majoration 20%, marge 5,1%) :  {er4_curr:>11.2%}  {er6_curr:>11.2%}")
+print(f"Rendement sans risque :                       {(np.exp(r) - 1):>11.2%}  {(np.exp(r) - 1):>11.2%}")
+```
