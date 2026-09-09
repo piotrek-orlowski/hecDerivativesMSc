@@ -16,6 +16,8 @@ dependencies = [
     "yfinance>=0.2.0",
     "bokeh>=3.4.3",
     "scipy>=1.13.1",
+    "imageio>=2.37.2",
+    "imageio-ffmpeg>=0.6.0",
 ]
 
 [tool.setuptools.packages.find]

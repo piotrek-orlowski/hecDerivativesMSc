@@ -156,6 +156,20 @@ To run the Greeks visualization app:
 uv run bokeh serve --show theme_05/option_greeks_app.py
 ```
 
+### Black-Scholes Visualizations
+
+- **`bs_call_animation.py`** - Animates a call price as the option approaches maturity
+- **`bs_surface.py`** - Plots a Black-Scholes call surface with three simulated stock-price paths
+
+Run the scripts from the repository root:
+
+```bash
+uv run python bs_call_animation.py
+uv run python bs_surface.py
+```
+
+The first script writes `bs_call_animation.mov`. The second script writes `bs_surface.png`.
+
 ### Binomial Tree Module (`bintree/`)
 
 A complete implementation of forward binomial trees for:
